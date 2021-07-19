@@ -14,11 +14,11 @@ all: dftsrc tool #test
 
 .PHONY: dftsrc mytool
 dftsrc: $(LIBDFT_SRC)
-	cd $< && CPPFLAGS=$(CPPFLAGS) DFTFLAGS=$(LIBDFT_TAG_FLAGS) make
+	cd $< && CPPFLAGS="$(CPPFLAGS)" DFTFLAGS=$(LIBDFT_TAG_FLAGS) make
 
 tool: $(LIBDFT_TOOL)
-	# cd $< && TARGET=ia32 CPPFLAGS=$(CPPFLAGS) DFTFLAGS=$(LIBDFT_TAG_FLAGS) make
-	cd $< && TARGET=intel64 CPPFLAGS=$(CPPFLAGS) DFTFLAGS=$(LIBDFT_TAG_FLAGS) make
+	# cd $< && TARGET=ia32 CPPFLAGS="$(CPPFLAGS)" DFTFLAGS=$(LIBDFT_TAG_FLAGS) make
+	cd $< && TARGET=intel64 CPPFLAGS="$(CPPFLAGS)" DFTFLAGS=$(LIBDFT_TAG_FLAGS) make
 
 .PHONY: clean
 clean:

@@ -53,6 +53,7 @@ LIB_ROOTS := libdft
 # See makefile.default.rules for the default build rules.
 
 # Special builds for libdft.a
+CXX += $(CPPFLAGS)
 A_ARFLAGS		= rcsv
 ALL_OBJS = $(OBJECT_ROOTS:%=$(OBJDIR)%$(OBJ_SUFFIX))
 $(OBJDIR)libdft$(LIB_SUFFIX): $(ALL_OBJS)
