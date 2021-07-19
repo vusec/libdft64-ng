@@ -36,6 +36,7 @@
 #include "libdft_core.h"
 #include "syscall_desc.h"
 #include "syscall_hook.h"
+#include "libdft_cmd.h"
 
 /* threads context counter */
 static size_t tctx_ct = 0;
@@ -349,6 +350,44 @@ static inline int thread_ctx_init(void) {
   return 0;
 }
 
+static void
+libdft_cmd_handler(ADDRINT cmd, ADDRINT arg1, const CONTEXT *ctxt)
+{
+	switch (cmd)
+	{
+	case CMD_TAINT_DUMP:
+		extern void taint_dump(ADDRINT);
+		taint_dump(arg1);
+		break;
+#ifdef LIBDFT_TAG_PTR
+	case CMD_TAINT_MEM_ALL:
+		extern void memtaint_taint_all();
+		memtaint_taint_all();
+		break;
+#endif
+	default:
+		fprintf(stderr, "Invalid libdft command: %lu\n", cmd);
+		break;
+	}
+}
+
+static void
+libdft_cmd_img(IMG img, void *v)
+{
+	RTN rtn = RTN_FindByName(img, "__libdft_cmd");
+	if (RTN_Valid(rtn))
+	{
+		RTN_Open(rtn);
+		// Instrument __libdft_cmd() to process the command.
+		RTN_InsertCall(rtn, IPOINT_BEFORE, (AFUNPTR)libdft_cmd_handler,
+					   IARG_FUNCARG_ENTRYPOINT_VALUE, 0,
+					   IARG_FUNCARG_ENTRYPOINT_VALUE, 1,
+					   IARG_CONTEXT,
+					   IARG_END);
+		RTN_Close(rtn);
+	}
+}
+
 /*
  * initialization of the core tagging engine;
  * it must be called before using everything else
@@ -391,6 +430,9 @@ int libdft_init() {
 
   /* register trace_ins() to be called for every trace */
   TRACE_AddInstrumentFunction(trace_inspect, NULL);
+
+	/* register libdft command server */
+	IMG_AddInstrumentFunction(libdft_cmd_img, NULL);
 
   /* success */
   return 0;

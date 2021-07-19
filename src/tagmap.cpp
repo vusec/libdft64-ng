@@ -235,3 +235,9 @@ tag_t tagmap_getn_reg(THREADID tid, unsigned int reg_idx, unsigned int n) {
   }
   return ts;
 }
+
+void taint_dump(ADDRINT addr) {
+  tag_t t = tagmap_getb(addr);
+  fprintf(stderr, "[taint_dump] addr=%p, tags=%s\n",
+          (void *)addr, tag_sprint(t).c_str());
+}

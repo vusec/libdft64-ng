@@ -190,5 +190,6 @@ tag_t tagmap_getn(ADDRINT addr, unsigned int size);
 tag_t tagmap_getn_reg(THREADID tid, unsigned int reg_idx, unsigned int n);
 void tagmap_clrb(ADDRINT addr);
 void tagmap_clrn(ADDRINT, UINT32);
+void taint_dump(ADDRINT addr);
 
 #endif /* __TAGMAP_H__ */
