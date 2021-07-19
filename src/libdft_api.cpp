@@ -370,6 +370,11 @@ int libdft_init() {
     /* thread contexts failed */
     return 1;
 
+  /* initialize the tagmap; optimized branch */
+  if (unlikely(tagmap_alloc()))
+    /* tagmap initialization failed */
+    return 1;
+
   /*
    * syscall hooks; store the context of every syscall
    * and invoke registered callbacks (if any)
@@ -405,6 +410,7 @@ void libdft_die(void) {
    */
   //	delete[] threads_ctx;
   free(threads_ctx);
+  tagmap_free();
   /*
    * detach PIN from the application;
    * the application will continue to execute natively

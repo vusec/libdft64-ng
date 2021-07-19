@@ -37,11 +37,107 @@
 #include "tag_traits.h"
 #include <utility>
 
-/*
- * the bitmap size in bytes
- */
 #define PAGE_SIZE 4096
 #define PAGE_BITS 12
+
+#ifdef LIBDFT_SHADOW
+
+/*
+ * Use a shadow memory organization for the tagmap.
+ *
+ * Notes and requirements:
+ * - Linux x86_64 PIE binary: stack, mmap_base at the end of the address space.
+ * - Binary `prelinked -r BIN_START` (or using utils/relink.py).
+ * - BIN_START selected to support 32-bit addressing and randomized stack.
+ * - RESERVED_BYTES selected to comply with mmap_min_addr. Also maximum
+ *   range allowed for file offset labels when using -DLIBDFT_PTR_32.
+ * - SHADOW_END calculated based on TAG_SIZE.
+ * - To enforce 32-bit addressing (for encoding addresses in 32-bit tags):
+ *   - Libdft compiled with -DLIBDFT_PTR_32.
+ *   - PIN started with `setarch -R` (or ASLR off).
+ *
+ * Address space layout:
+ * ==== 0x000000000000: SHADOW_START
+ * ...
+ * ==== 0x000000100000: SHADOW_START+RESERVED_BYTES
+ * ...
+ * ...
+ * ...
+ * ==== 0x............: SHADOW_END, MAIN_START
+ * ...
+ * ==== 0x............: MAIN_START+RESERVED_BYTES
+ * ...
+ * ...
+ * ==== 0x7fff00101000: BIN_START
+ * ...
+ * ==== 0x800000000000: MAIN_END
+*/
+#ifndef RESERVED_BYTES
+#define RESERVED_BYTES  (0x100000UL)
+#endif
+#define USER_START      (0x0)
+#define USER_END        (1UL << 47)
+#define MAIN32_START    (USER_END-(1UL<<32)+PAGE_SIZE)
+#define BIN_START       (MAIN32_START+RESERVED_BYTES)
+#define USER_SIZE       (USER_END-USER_START)
+
+#define SHADOW_START    USER_START
+#define __SHADOW_SIZE   ((USER_SIZE/(TAG_SIZE+1)) * TAG_SIZE)
+#define _SHADOW_SIZE    (((__SHADOW_SIZE>>PAGE_BITS)+1)<<PAGE_BITS)
+
+#if SHADOW_START+_SHADOW_SIZE > MAIN32_START
+#error "Cannot fit minimum 32-bit main address space. tag_t too large?"
+#endif
+
+#ifdef LIBDFT_PTR_32
+#define SHADOW_SIZE     (MAIN32_START-SHADOW_START)
+#define PTR_BASE        (MAIN32_START)
+#else
+#define SHADOW_SIZE     _SHADOW_SIZE
+#define PTR_BASE        (0x0)
+#endif
+#define SHADOW_END      (SHADOW_START+SHADOW_SIZE)
+#define MAIN_START      SHADOW_END
+#define MAIN_END        USER_END
+#define MAIN_SIZE       (MAIN_END-MAIN_START)
+
+static inline tag_t *addr_to_shadow(const void *addr)
+{
+#ifdef DEBUG_SHADOW
+  if (addr < (void *)MAIN_START || addr >= (void *)MAIN_END) {
+    fprintf(stderr, "Invalid addr: %p\n", addr);
+    exit(1);
+  }
+#endif
+
+  /*
+   * Notes:
+   * - Program accesses to shadow memory will land in kernel memory.
+   * - Program accesses to kernel memory trap anyway.
+   * - The second (optimized) version below replaces the subtraction
+   *   with an addition (allowing PIN to generate better code) by
+   *   exploiting user address space wraparound arithmetic. However,
+   *   shadow memory accesses are no longer guaranteed to trap with it.
+   */
+#ifndef SHADOW_OPT
+  return (tag_t *)(((((uint64_t)addr) - MAIN_START) * TAG_SIZE) + SHADOW_START);
+#else
+  return (tag_t *)(((((uint64_t)addr) + MAIN_SIZE) * TAG_SIZE) & (USER_END - 1));
+#endif
+}
+
+static inline void *shadow_to_addr(tag_t *saddr)
+{
+  return (void *)(((((uint64_t)saddr) - SHADOW_START) / TAG_SIZE) + MAIN_START);
+}
+
+typedef int tag_dir_t; /* Dummy type, unused. */
+
+#else /* End of LIBDFT_SHADOW */
+
+/*
+ * Use a page table organization for the tagmap.
+ */
 #define TOP_DIR_SZ 0x800000
 #define PAGETABLE_SZ 0X1000
 #define PAGETABLE_BITS 24
@@ -58,8 +154,6 @@
 #define ALIGN_OFF_MAX 8 /* max alignment offset */
 #define ASSERT_FAST 32  /* used in comparisons  */
 
-extern void libdft_die();
-
 /* XXX: Latest Intel Pin(3.7) does not support std::array :( */
 // typedef std::array<tag_t, PAGE_SIZE> tag_page_t;
 // typedef std::array<tag_page_t*, PAGETABLE_SZ> tag_table_t;
@@ -75,6 +169,12 @@ typedef struct {
   tag_table_t *table[TOP_DIR_SZ];
 } tag_dir_t;
 
+#endif /* End of !LIBDFT_SHADOW */
+
+extern void libdft_die();
+
+int tagmap_alloc(void);
+void tagmap_free(void);
 void tagmap_setb(ADDRINT addr, tag_t const &tag);
 void tagmap_setb_reg(THREADID tid, unsigned int reg_idx, unsigned int off,
                      tag_t const &tag);

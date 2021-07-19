@@ -42,9 +42,66 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/mman.h>
 
 tag_dir_t tag_dir;
 extern thread_ctx_t *threads_ctx;
+
+#ifdef LIBDFT_SHADOW
+
+int tagmap_alloc(void)
+{
+  int mmap_prot = PROT_READ | PROT_WRITE;
+  int mmap_flags = MAP_FIXED | MAP_ANONYMOUS | MAP_PRIVATE | MAP_NORESERVE;
+
+#ifdef DEBUG_SHADOW
+  fprintf(stderr, "USER_START=%p, RESERVED_BYTES=%p, USER_END=%p, MAIN32_START=%p, BIN_START=%p, USER_SIZE=%p, SHADOW_START=%p, _SHADOW_SIZE=%p, SHADOW_SIZE=%p, SHADOW_END=%p, MAIN_START=%p, MAIN_SIZE=%p, MAIN_END=%p, PTR_BASE=%p\n", (void *)USER_START, (void *)RESERVED_BYTES, (void *)USER_END, (void *)MAIN32_START, (void *)BIN_START, (void *)USER_SIZE, (void *)SHADOW_START, (void *)_SHADOW_SIZE, (void *)SHADOW_SIZE, (void *)SHADOW_END, (void *)MAIN_START, (void *)MAIN_SIZE, (void *)MAIN_END, (void*)PTR_BASE);
+#endif
+
+  /* Map most of the address space for use as shadow memory. */
+  if (mmap((void *)(SHADOW_START + RESERVED_BYTES), SHADOW_SIZE - RESERVED_BYTES, mmap_prot, mmap_flags, -1, 0) == (void *)-1)
+  {
+    const char *err = strerror(errno);
+    PIN_ERROR(std::string("Failed to mmap shadow region: ") + err + std::string("\n"));
+    return 1;
+  }
+
+  /* Reserve RESERVED_BYTES at the beginning of the main address space. */
+  if (mmap((void *)MAIN_START, RESERVED_BYTES, PROT_NONE, mmap_flags, -1, 0) == (void *)-1)
+  {
+    const char *err = strerror(errno);
+    PIN_ERROR(std::string("Failed to mmap (main) reserved region: ") + err + std::string("\n"));
+    return 1;
+  }
+
+  return 0;
+}
+
+void tagmap_free(void)
+{
+  /* Get rid of the shadow memory and reserved mappings. */
+  munmap((void *)(SHADOW_START + RESERVED_BYTES), SHADOW_SIZE - RESERVED_BYTES);
+  munmap((void *)MAIN_START, RESERVED_BYTES);
+}
+
+inline void tag_dir_setb(UNUSED tag_dir_t &dir, ADDRINT addr, tag_t const &tag)
+{
+  tag_t *tagp = addr_to_shadow((void *)addr);
+  *tagp = tag;
+}
+
+inline tag_t const *tag_dir_getb_as_ptr(UNUSED tag_dir_t const &dir, ADDRINT addr)
+{
+  return addr_to_shadow((void *)addr);
+}
+
+#else /* End of LIBDFT_SHADOW */
+
+int tagmap_alloc(void) {
+  return 0;
+}
+
+void tagmap_free(void) {}
 
 inline void tag_dir_setb(tag_dir_t &dir, ADDRINT addr, tag_t const &tag) {
   if (addr > 0x7fffffffffff) {
@@ -97,6 +154,8 @@ inline tag_t const *tag_dir_getb_as_ptr(tag_dir_t const &dir, ADDRINT addr) {
   }
   return &tag_traits<tag_t>::cleared_val;
 }
+
+#endif /* End of !LIBDFT_SHADOW */
 
 // PIN_FAST_ANALYSIS_CALL
 void tagmap_setb(ADDRINT addr, tag_t const &tag) {
