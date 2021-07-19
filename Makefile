@@ -6,11 +6,15 @@ CXX=clang++
 
 LIBDFT_SRC			= src
 LIBDFT_TOOL			= tools
+LIBDFT_TEST			= tests
 # LIBDFT_TAG_FLAGS	?= -DLIBDFT_TAG_TYPE=libdft_tag_uint8
 
 
 .PHONY: all
-all: dftsrc tool #test
+all: dftsrc tool test
+
+test: $(LIBDFT_TEST)
+	cd $< && CPPFLAGS="$(CPPFLAGS)" make
 
 .PHONY: dftsrc mytool
 dftsrc: $(LIBDFT_SRC)
@@ -24,3 +28,4 @@ tool: $(LIBDFT_TOOL)
 clean:
 	cd $(LIBDFT_SRC) && make clean
 	cd $(LIBDFT_TOOL) && make clean
+	cd $(LIBDFT_TEST) && make clean
