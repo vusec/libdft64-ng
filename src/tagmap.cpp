@@ -51,6 +51,9 @@ extern thread_ctx_t *threads_ctx;
 
 int tagmap_alloc(void)
 {
+#ifdef LIBDFT_TAG_PTR
+	extern void memtaint_init(void *addr, size_t len);
+#endif
   int mmap_prot = PROT_READ | PROT_WRITE;
   int mmap_flags = MAP_FIXED | MAP_ANONYMOUS | MAP_PRIVATE | MAP_NORESERVE;
 
@@ -73,6 +76,11 @@ int tagmap_alloc(void)
     PIN_ERROR(std::string("Failed to mmap (main) reserved region: ") + err + std::string("\n"));
     return 1;
   }
+
+#ifdef LIBDFT_TAG_PTR
+	/* Initialize memtaint. */
+	memtaint_init((void *)(SHADOW_START + RESERVED_BYTES), SHADOW_SIZE - RESERVED_BYTES);
+#endif
 
   return 0;
 }
