@@ -15,7 +15,7 @@ template <> std::string tag_sprint(uint8_t const &tag) {
   return ss.str();
 }
 
-template <> uint8_t tag_alloc<uint8_t>(unsigned int offset) {
+template <> uint8_t tag_alloc<uint8_t>(ptroff_t offset) {
   return offset > 0;
 }
 
@@ -25,6 +25,7 @@ tag set tags
 
 BDDTag bdd_tag;
 lb_type tag_traits<lb_type>::cleared_val = 0;
+lb_type tag_traits<lb_type>::file_len_val = BDD_LEN_LB;
 
 template <> lb_type tag_combine(lb_type const &lhs, lb_type const &rhs) {
   return bdd_tag.combine(lhs, rhs);
@@ -34,7 +35,7 @@ template <> std::string tag_sprint(lb_type const &tag) {
   return bdd_tag.to_string(tag);
 }
 
-template <> lb_type tag_alloc<lb_type>(unsigned int offset) {
+template <> lb_type tag_alloc<lb_type>(ptroff_t offset) {
   return bdd_tag.insert(offset);
 }
 

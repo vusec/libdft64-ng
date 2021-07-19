@@ -124,12 +124,12 @@ static void post_read_hook(THREADID tid, syscall_ctx_t *ctx) {
     }
 
     for (unsigned int i = 0; i < count; i++) {
-      tag_t t = tag_alloc<tag_t>(read_off + i);
+      tag_t t = tag_alloc<tag_t>((ptroff_t) (read_off + i + 1));
       tagmap_setb(buf + i, t);
       // LOGD("[read] %d, lb: %d,  %s\n", i, t, tag_sprint(t).c_str());
     }
 
-    tagmap_setb_reg(tid, DFT_REG_RAX, 0, BDD_LEN_LB);
+    tagmap_setb_reg(tid, DFT_REG_RAX, 0, tag_traits<tag_t>::file_len_val);
 
   } else {
     /* clear the tag markings */
@@ -156,7 +156,7 @@ static void post_pread64_hook(THREADID tid, syscall_ctx_t *ctx) {
     }
     /* set the tag markings */
     for (unsigned int i = 0; i < count; i++) {
-      tag_t t = tag_alloc<tag_t>(read_off + i);
+      tag_t t = tag_alloc<tag_t>((ptroff_t) (read_off + i + 1));
       tagmap_setb(buf + i, t);
     }
   } else {
@@ -184,7 +184,7 @@ static void post_mmap_hook(THREADID tid, syscall_ctx_t *ctx) {
     tainted = true;
     LOGD("[mmap] fd: %d, offset: %ld, size: %lu\n", fd, read_off, nr);
     for (unsigned int i = 0; i < nr; i++) {
-      tag_t t = tag_alloc<tag_t>(read_off + i);
+      tag_t t = tag_alloc<tag_t>((ptroff_t) (read_off + i + 1));
       tagmap_setb(buf + i, t);
     }
   } else {
