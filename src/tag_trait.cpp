@@ -2,6 +2,24 @@
 #include "tag_traits.h"
 #include <string.h>
 
+void tag_sprint_ptroff(std::stringstream &ss, ptroff_t const &v) {
+  if (v == sset_tag_t::LEN) {
+    ss << "LEN";
+    return;
+  }
+  ss << std::hex << std::setfill('0');
+#ifdef LIBDFT_TAG_PTR
+  extern void* tag_to_ptr(ptroff_t);
+  extern bool tag_is_file_offset(ptroff_t);
+  if (tag_is_file_offset(v))
+    ss << "+0x" << std::setw(8) << v;
+  else
+    ss << "0x" << std::setw(12) << (uint64_t) tag_to_ptr(v);
+#else
+  ss << "+0x" << std::setw(8) << v;
+#endif
+}
+
 /********************************************************
  uint8_t tags
  ********************************************************/
@@ -90,11 +108,11 @@ std::string tag_sprint(sset_tag_t const &tag)
 
   std::stringstream ss;
   ss << "{";
-  ss << tag_getn(tag, 0);
+  tag_sprint_ptroff(ss, tag_getn(tag, 0));
   for (int i = 1; tag_hasn(tag, i); i++)
   {
     ss << ", ";
-    ss << tag_getn(tag, i);
+    tag_sprint_ptroff(ss, tag_getn(tag, i));
   }
   ss << "}";
 

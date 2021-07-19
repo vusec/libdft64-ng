@@ -95,6 +95,24 @@ inline tag_t const *tag_dir_getb_as_ptr(UNUSED tag_dir_t const &dir, ADDRINT add
   return addr_to_shadow((void *)addr);
 }
 
+#ifdef LIBDFT_TAG_PTR
+bool tag_is_file_offset(ptroff_t v) {
+#ifdef LIBDFT_PTR_32
+  return v >= 1 && v < (ptroff_t) RESERVED_BYTES;
+#else
+  return v < (ptroff_t) (MAIN_START+RESERVED_BYTES);
+#endif
+}
+
+void* tag_to_ptr(ptroff_t v) {
+  return (void*) (((uint64_t)v) + PTR_BASE);
+}
+
+ptroff_t ptr_to_tag(void *p) {
+  return (ptroff_t) (((uint64_t)p) - PTR_BASE);
+}
+#endif
+
 #else /* End of LIBDFT_SHADOW */
 
 int tagmap_alloc(void) {

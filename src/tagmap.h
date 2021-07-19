@@ -133,6 +133,12 @@ static inline void *shadow_to_addr(tag_t *saddr)
 
 typedef int tag_dir_t; /* Dummy type, unused. */
 
+#ifdef LIBDFT_TAG_PTR
+bool tag_is_file_offset(ptroff_t v);
+void* tag_to_ptr(ptroff_t v);
+ptroff_t ptr_to_tag(void *p);
+#endif
+
 #else /* End of LIBDFT_SHADOW */
 
 /*

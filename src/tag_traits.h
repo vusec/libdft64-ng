@@ -4,6 +4,8 @@
 #include <string>
 #include "config.h"
 
+void tag_sprint_ptroff(std::stringstream &ss, ptroff_t const &v);
+
 template <typename T> struct tag_traits {};
 template <typename T> T tag_combine(T const &lhs, T const &rhs);
 template <typename T> std::string tag_sprint(T const &tag);

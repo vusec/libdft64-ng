@@ -1,9 +1,33 @@
 #ifndef LIBDFT_CONFIG_H
 #define LIBDFT_CONFIG_H
 
+/* Pointer tag support. */
+#ifdef LIBDFT_TAG_PTR_32
+#ifndef LIBDFT_TAG_PTR
+#define LIBDFT_TAG_PTR
+#endif
+#ifndef LIBDFT_PTR_32
+#define LIBDFT_PTR_32
+#endif
+#endif
+
+#ifdef LIBDFT_TAG_PTR
+#ifndef LIBDFT_SHADOW
+#define LIBDFT_SHADOW
+#endif
+#ifndef LIBDFT_TAG_SSET
+#define LIBDFT_TAG_SSET
+#endif
+#endif
+
 /* Pointer/offset labels. */
+#if !defined(LIBDFT_TAG_PTR) || defined(LIBDFT_PTR_32)
 #define PTROFF_SIZE 4
 typedef uint32_t ptroff_t;
+#else
+#define PTROFF_SIZE 8
+typedef uint64_t ptroff_t;
+#endif
 
 /* Small set tags. */
 #ifndef LIBDFT_TAG_SSET_MAX
