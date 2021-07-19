@@ -175,7 +175,7 @@ static void post_mmap_hook(THREADID tid, syscall_ctx_t *ctx) {
   // PROT_READ 0x1
   if ((void *)ret == (void *)-1 || !(prot & 0x1))
     return;
-  const ADDRINT buf = ctx->arg[SYSCALL_ARG0];
+  const ADDRINT buf = ret;
   const size_t nr = ctx->arg[SYSCALL_ARG1];
   const off_t read_off = ctx->arg[SYSCALL_ARG5];
   // fprintf(stderr, "[mmap] fd: %d(%d), addr: %x, readoff: %ld, nr:%d \n", fd,
