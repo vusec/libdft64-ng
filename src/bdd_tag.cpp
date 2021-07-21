@@ -203,18 +203,28 @@ const std::vector<tag_seg> BDDTag::find(lb_type lb) {
 };
 
 std::string BDDTag::to_string(lb_type lb) {
-
+  std::stringstream ss;
+  bool first = true;
+  ss << "{";
+  if (BDD_HAS_LEN_LB(lb)) {
+    ss << "LEN";
+    first = false;
+  }
   lb = lb & LB_MASK;
-  std::string ss = "";
-  ss += "{";
   std::vector<tag_seg> tags = find(lb);
-  char buf[100];
   for (std::vector<tag_seg>::iterator it = tags.begin(); it != tags.end();
        ++it) {
-    sprintf(buf, "(%d, %d) ", it->begin, it->end);
-    std::string s(buf);
-    ss += s;
+    if (!first)
+      ss << ", ";
+    first = false;
+
+    tag_off b = it->begin;
+    tag_off e = it->end;
+    if (e == b+1)
+      ss << b;
+    else
+      ss << "(" << b << ", " << e << ")";
   }
-  ss += "}";
-  return ss;
+  ss << "}";
+  return ss.str();
 }
