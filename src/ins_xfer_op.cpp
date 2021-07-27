@@ -404,9 +404,9 @@ void ins_push_op(INS ins) {
       R2M_CALL(r2m_xfer_opw, reg_src);
     }
   } else if (INS_OperandIsMemory(ins, OP_0)) {
-    if (INS_MemoryWriteSize(ins) == BIT2BYTE(MEM_64BIT_LEN)) {
+    if (INS_MemoryOperandSize(ins, MEMORY_TYPE_WRITE) == BIT2BYTE(MEM_64BIT_LEN)) {
       M2M_CALL(m2m_xfer_opq);
-    } else if (INS_MemoryWriteSize(ins) == BIT2BYTE(MEM_LONG_LEN)) {
+    } else if (INS_MemoryOperandSize(ins, MEMORY_TYPE_WRITE) == BIT2BYTE(MEM_LONG_LEN)) {
       M2M_CALL(m2m_xfer_opl);
     } else {
       M2M_CALL(m2m_xfer_opw);
@@ -429,9 +429,9 @@ void ins_pop_op(INS ins) {
       M2R_CALL(m2r_xfer_opw, reg_dst);
     }
   } else if (INS_OperandIsMemory(ins, OP_0)) {
-    if (INS_MemoryWriteSize(ins) == BIT2BYTE(MEM_64BIT_LEN)) {
+    if (INS_MemoryOperandSize(ins, MEMORY_TYPE_WRITE) == BIT2BYTE(MEM_64BIT_LEN)) {
       M2M_CALL(m2m_xfer_opq);
-    } else if (INS_MemoryWriteSize(ins) == BIT2BYTE(MEM_LONG_LEN)) {
+    } else if (INS_MemoryOperandSize(ins, MEMORY_TYPE_WRITE) == BIT2BYTE(MEM_LONG_LEN)) {
       M2M_CALL(m2m_xfer_opl);
     } else {
       M2M_CALL(m2m_xfer_opw);
