@@ -1,5 +1,6 @@
 CC=gcc
 CFLAGS=-Og -Wall -Werror
+LDFLAGS=-z max-page-size=0x1000
 OBJDIR=obj-intel64
 
 PROGRAMS=memtaint
@@ -7,7 +8,7 @@ PROGRAMS=memtaint
 BINARIES=$(addprefix $(OBJDIR)/,$(PROGRAMS))
 
 BIN_PREP_memtaint=../utils/relink.py $(OBJDIR)/memtaint
-PIN_EXEC_memtaint=setarch $(uname -m) -R
+PIN_EXEC_memtaint=setarch x86_64 -R
 
 all: $(BINARIES)
 
