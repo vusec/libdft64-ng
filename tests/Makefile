@@ -7,7 +7,7 @@ PROGRAMS=memtaint
 BINARIES=$(addprefix $(OBJDIR)/,$(PROGRAMS))
 
 BIN_PREP_memtaint=../utils/relink.py $(OBJDIR)/memtaint
-PIN_EXEC_memtaint=setarch -R
+PIN_EXEC_memtaint=setarch $(uname -m) -R
 
 all: $(BINARIES)
 
