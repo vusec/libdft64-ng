@@ -20,7 +20,7 @@ test: $(LIBDFT_TEST)
 dftsrc: $(LIBDFT_SRC)
 	cd $< && CPPFLAGS="$(CPPFLAGS)" DFTFLAGS=$(LIBDFT_TAG_FLAGS) make
 
-tool: $(LIBDFT_TOOL)
+tool: $(LIBDFT_TOOL) dftsrc
 	# cd $< && TARGET=ia32 CPPFLAGS="$(CPPFLAGS)" DFTFLAGS=$(LIBDFT_TAG_FLAGS) make
 	cd $< && TARGET=intel64 CPPFLAGS="$(CPPFLAGS)" DFTFLAGS=$(LIBDFT_TAG_FLAGS) make
 
