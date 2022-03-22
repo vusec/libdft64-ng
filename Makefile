@@ -14,18 +14,18 @@ LIBDFT_TEST			= tests
 all: dftsrc tool test
 
 test: $(LIBDFT_TEST)
-	cd $< && CPPFLAGS="$(CPPFLAGS)" make
+	cd $< && CPPFLAGS="$(CPPFLAGS)" $(MAKE)
 
 .PHONY: dftsrc mytool
 dftsrc: $(LIBDFT_SRC)
-	cd $< && CPPFLAGS="$(CPPFLAGS)" DFTFLAGS=$(LIBDFT_TAG_FLAGS) make
+	cd $< && CPPFLAGS="$(CPPFLAGS)" DFTFLAGS=$(LIBDFT_TAG_FLAGS) $(MAKE)
 
 tool: $(LIBDFT_TOOL) dftsrc
-	# cd $< && TARGET=ia32 CPPFLAGS="$(CPPFLAGS)" DFTFLAGS=$(LIBDFT_TAG_FLAGS) make
-	cd $< && TARGET=intel64 CPPFLAGS="$(CPPFLAGS)" DFTFLAGS=$(LIBDFT_TAG_FLAGS) make
+	# cd $< && TARGET=ia32 CPPFLAGS="$(CPPFLAGS)" DFTFLAGS=$(LIBDFT_TAG_FLAGS) $(MAKE)
+	cd $< && TARGET=intel64 CPPFLAGS="$(CPPFLAGS)" DFTFLAGS=$(LIBDFT_TAG_FLAGS) $(MAKE)
 
 .PHONY: clean
 clean:
-	cd $(LIBDFT_SRC) && make clean
-	cd $(LIBDFT_TOOL) && make clean
-	cd $(LIBDFT_TEST) && make clean
+	cd $(LIBDFT_SRC) && $(MAKE) clean
+	cd $(LIBDFT_TOOL) && $(MAKE) clean
+	cd $(LIBDFT_TEST) && $(MAKE) clean
