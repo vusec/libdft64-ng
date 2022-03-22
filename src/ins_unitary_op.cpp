@@ -97,7 +97,7 @@ static void PIN_FAST_ANALYSIS_CALL m2r_unitary_opl(THREADID tid, ADDRINT src) {
 
 void ins_unitary_op(INS ins) {
   if (INS_OperandIsMemory(ins, OP_0))
-    switch (INS_MemoryOperandSize(ins, MEMORY_TYPE_WRITE)) {
+    switch (INS_MemoryOperandSize(ins, OP_0)) {
     case BIT2BYTE(MEM_64BIT_LEN):
       M_CALL_R(m2r_unitary_opq);
       break;
