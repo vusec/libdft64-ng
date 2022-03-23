@@ -265,7 +265,7 @@ dta_instrument_jmp_call(INS ins)
 			/* size analysis */
 				
 			/* 32-bit */
-			if (INS_MemoryOperandSize(ins, MEMORY_TYPE_READ) == WORD_LEN)
+			if (INS_MemoryReadSize(ins) == WORD_LEN)
 				/*
 				 * instrument assert_mem32() before branch;
 				 * conditional instrumentation -- if
@@ -318,7 +318,7 @@ dta_instrument_ret(INS ins)
 	/* size analysis */
 				
 	/* 32-bit */
-	if (INS_MemoryOperandSize(ins, MEMORY_TYPE_READ) == WORD_LEN)
+	if (INS_MemoryReadSize(ins) == WORD_LEN)
 		/*
 		 * instrument assert_mem32() before ret;
 		 * conditional instrumentation -- if
