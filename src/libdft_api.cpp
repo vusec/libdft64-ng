@@ -49,6 +49,12 @@ extern syscall_desc_t syscall_desc[SYSCALL_MAX];
 /* ins descriptors */
 ins_desc_t ins_desc[XED_ICLASS_LAST];
 
+/* log variables */
+PinLog *_libdft_out = NULL;
+PinLog *_libdft_err = NULL;
+PinLog *_libdft_dbg = NULL;
+bool _log_to_std = true;
+
 /*
  * thread start callback (analysis function)
  *
@@ -539,5 +545,18 @@ int ins_clr_post(syscall_desc_t *desc) {
   desc->post = NULL;
 
   /* return with success */
+  return 0;
+}
+
+int libdft_set_log_dir(const char *path) {
+  // Write log files to specified directory
+  char buf_out[256], buf_err[256], buf_dbg[256];
+  strcpy(buf_out, path); strcat(buf_out, "/libdft.%s.out");
+  strcpy(buf_err, path); strcat(buf_err, "/libdft.%s.err");
+  strcpy(buf_dbg, path); strcat(buf_dbg, "/libdft.%s.dbg");
+  _libdft_out = new PinLogPerThread(buf_out);
+  _libdft_err = new PinLogPerThread(buf_err);
+  _libdft_dbg = new PinLogPerThread(buf_dbg);
+  _log_to_std = false; // No longer logging to stdout/stderr
   return 0;
 }

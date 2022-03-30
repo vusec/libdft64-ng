@@ -8,6 +8,16 @@
 #include <sstream>
 #include <pin.H>
 
+// For some reason, PIN does not allow us to use std::to_string().
+// TODO: Put this in a more appropriate file, e.g., a utils.
+template < class T >
+std::string my_to_string( const T& v )
+{
+    std::ostringstream oss;
+	oss << v;
+	return oss.str();
+}
+
 //*******************************************************************
 // Logging macros
 //*******************************************************************
@@ -37,8 +47,6 @@ typedef struct {
 	FILE *file;				//!< Log file object.
 	BOOL started;			//!< Logging has started.
 } log_ctx_t;
-
-
 
 //*******************************************************************
 // Logging classes
@@ -142,8 +150,8 @@ inline void PinLogPerProcess::logts(const char *fmt, ...)
 	fflush(data->file);
 	PIN_MutexUnlock(&this->mutex);
 	va_end(args);
-    
-    fflush(data->file);
+
+	fflush(data->file);
 	this->data.started = TRUE;
 }
 
@@ -162,7 +170,7 @@ inline void PinLogPerProcess::_logts(const char *fmt, ...)
 	vfprintf(data->file, fmt, args);
 	fflush(data->file);
 	PIN_MutexUnlock(&this->mutex);
-    
+
     fflush(data->file);
 	va_end(args);
 }
@@ -213,11 +221,11 @@ inline void PinLogPerProcess::log(const char *fmt, ...)
 	log_ctx_t *data = &this->data;
 
 	va_start(args, fmt);
-	vfprintf(data->file, fmt, args); 
+	vfprintf(data->file, fmt, args);
 	fflush(data->file);
 	va_end(args);
-    
-    fflush(data->file);
+
+	fflush(data->file);
 }
 
 /*! \brief Log a single line.
@@ -235,8 +243,8 @@ inline void PinLogPerThread::log(const char *fmt, ...)
 	vfprintf(data->file, fmt, args);
 	fflush(data->file);
 	va_end(args);
-    
-    fflush(data->file);
+
+	fflush(data->file);
 }
 
 /*! \brief Acquire the object's lock.
@@ -295,14 +303,14 @@ inline BOOL PinLogPerThread::has_started()
  */
 inline std::string PinLogPerProcess::makeid()
 {
-	return std::to_string(PIN_GetPid());
+	return my_to_string(PIN_GetPid());
 }
 
 /*! \brief Creates a context-specific file-id - unique per thread.
  */
 inline std::string PinLogPerThread::makeid()
 {
-    string ret = std::to_string(PIN_GetPid()) + "." + std::to_string(PIN_GetTid());
+    std::string ret = my_to_string(PIN_GetPid()) + "." + my_to_string(PIN_GetTid());
     return ret;
 }
 
