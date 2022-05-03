@@ -115,7 +115,7 @@ memtaint_spfh_thread(void *arg)
 		nread = read(uffd, &msg, sizeof(msg));
 		if (nread == 0)
 		{
-			printf("EOF on userfaultfd!\n");
+			LOG_OUT("EOF on userfaultfd!\n");
 			exit(EXIT_FAILURE);
 		}
 
@@ -130,9 +130,9 @@ memtaint_spfh_thread(void *arg)
 
 #ifdef DEBUG_MEMTAINT
 		/* Display info about the page-fault event. */
-		printf("UFFD_EVENT_PAGEFAULT event: ");
-		printf("flags = %llu; ", msg.arg.pagefault.flags);
-		printf("address = %p\n", (void *)msg.arg.pagefault.address);
+		LOG_OUT("UFFD_EVENT_PAGEFAULT event: ");
+		LOG_OUT("flags = %llu; ", msg.arg.pagefault.flags);
+		LOG_OUT("address = %p\n", (void *)msg.arg.pagefault.address);
 #endif
 		/* Copy the page pointed to by 'page' into the faulting region. */
 		uffdio_copy.src = (unsigned long)page;
@@ -141,7 +141,7 @@ memtaint_spfh_thread(void *arg)
 		{
 			/* Create identity page rather than the zero page. */
 #ifdef DEBUG_MEMTAINT
-			printf("    Filling identify page: shadow_addr=%p, main_addr=%p, first tag=%p\n",
+			LOG_OUT("    Filling identify page: shadow_addr=%p, main_addr=%p, first tag=%p\n",
 				   paddr, shadow_to_addr((tag_t *)paddr), (void*)(uint64_t) ptr_to_tag(shadow_to_addr((tag_t *)paddr)));
 #endif
 			for (unsigned i = 0; i < page_size; i += TAG_SIZE)
@@ -208,7 +208,7 @@ void memtaint_taint_all()
 		return;
 
 #ifdef DEBUG_MEMTAINT
-	printf("Tainting all memory...\n");
+	LOG_OUT("Tainting all memory...\n");
 #endif
 
 	/* Throw away all the existing shadow memory pages. */
