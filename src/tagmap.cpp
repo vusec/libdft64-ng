@@ -133,12 +133,12 @@ inline void tag_dir_setb(tag_dir_t &dir, ADDRINT addr, tag_t const &tag) {
   if (addr > 0x7fffffffffff) {
     return;
   }
-  // LOG("Setting tag "+hexstr(addr)+"\n");
+  // LOG_OUT("Setting tag "+hexstr(addr)+"\n");
   if (dir.table[VIRT2PAGETABLE(addr)] == NULL) {
-    //  LOG("No tag table for "+hexstr(addr)+" allocating new table\n");
+    //  LOG_OUT("No tag table for "+hexstr(addr)+" allocating new table\n");
     tag_table_t *new_table = new (std::nothrow) tag_table_t();
     if (new_table == NULL) {
-      LOG("Failed to allocate tag table!\n");
+      LOG_ERR("Failed to allocate tag table!\n");
       libdft_die();
     }
     dir.table[VIRT2PAGETABLE(addr)] = new_table;
@@ -146,10 +146,10 @@ inline void tag_dir_setb(tag_dir_t &dir, ADDRINT addr, tag_t const &tag) {
 
   tag_table_t *table = dir.table[VIRT2PAGETABLE(addr)];
   if ((*table).page[VIRT2PAGE(addr)] == NULL) {
-    //    LOG("No tag page for "+hexstr(addr)+" allocating new page\n");
+    //    LOG_OUT("No tag page for "+hexstr(addr)+" allocating new page\n");
     tag_page_t *new_page = new (std::nothrow) tag_page_t();
     if (new_page == NULL) {
-      LOG("Failed to allocate tag page!\n");
+      LOG_ERR("Failed to allocate tag page!\n");
       libdft_die();
     }
     std::fill(new_page->tag, new_page->tag + PAGE_SIZE,

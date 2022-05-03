@@ -149,8 +149,7 @@ void ins_inspect(INS ins) {
   xed_iclass_enum_t ins_indx = (xed_iclass_enum_t)INS_Opcode(ins);
   /* sanity check */
   if (unlikely(ins_indx <= XED_ICLASS_INVALID || ins_indx >= XED_ICLASS_LAST)) {
-    LOG(std::string(__func__) + ": unknown opcode (opcode=" + decstr(ins_indx) +
-        ")\n");
+    LOG_ERR("%s: unknown opcode (opcode=%s)\n", __func__, decstr(ins_indx).c_str());
     /* done */
     return;
   }
