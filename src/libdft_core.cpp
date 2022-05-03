@@ -106,13 +106,13 @@ static bool reg_eq(INS ins) {
 static void PIN_FAST_ANALYSIS_CALL r_cmp(THREADID tid, ADDRINT dst,
                                          uint64_t val) {
   if (!tag_is_empty(RTAG[dst][0])) {
-    LOGD("r taint(%ld)!\n", val);
+    LOG_DBG("r taint(%ld)!\n", val);
   }
 }
 
 static void PIN_FAST_ANALYSIS_CALL m_cmp(THREADID tid, ADDRINT dst) {
   if (!tag_is_empty(MTAG(dst))) {
-    LOGD("m taint!\n");
+    LOG_DBG("m taint!\n");
   }
 }
 
@@ -133,7 +133,7 @@ void ins_cmp_op(INS ins) {
   }
 }
 
-VOID dasm(char *s) { LOGD("[ins] %s\n", s); }
+VOID dasm(char *s) { LOG_DBG("[ins] %s\n", s); }
 
 /*
  * instruction inspection (instrumentation function)
@@ -155,7 +155,7 @@ void ins_inspect(INS ins) {
     return;
   }
 
-  // LOGD("[ins] %s \n", INS_Disassemble(ins).c_str());
+  // LOG_DBG("[ins] %s \n", INS_Disassemble(ins).c_str());
   /*
   char *cstr;
   cstr = new char[INS_Disassemble(ins).size() + 1];
@@ -531,7 +531,7 @@ void ins_inspect(INS ins) {
     // INT32 num_op = INS_OperandCount(ins);
     // INT32 ins_ext = INS_Extension(ins);
     // if (ins_ext != 0 && ins_ext != 10)
-    LOGD("[uninstrumented] opcode=%d, %s\n", ins_indx,
+    LOG_DBG("[uninstrumented] opcode=%d, %s\n", ins_indx,
          INS_Disassemble(ins).c_str());
     break;
   }

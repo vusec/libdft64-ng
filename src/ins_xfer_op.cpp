@@ -39,7 +39,7 @@ void PIN_FAST_ANALYSIS_CALL r2r_xfer_opw(THREADID tid, uint32_t dst,
     RTAG[dst][i] = RTAG[src][i];
     /*
     if (!tag_is_empty(RTAG[src][i]))
-      LOGD("[xfer_w] i%ld: src: %d (%d) -> dst: %d (%d)\n", i, src,
+      LOG_DBG("[xfer_w] i%ld: src: %d (%d) -> dst: %d (%d)\n", i, src,
            RTAG[src][i], dst, RTAG[dst][i]);
            */
   }

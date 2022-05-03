@@ -11,9 +11,7 @@ extern PinLog *_libdft_err;
 extern PinLog *_libdft_dbg;
 extern bool _log_to_std;
 
-// TODO: Rename to something like DFT_LOG* (PIN has a LOG macro already)
-
-#define LOGO(...)                    \
+#define LOG_OUT(...)             \
   do {                               \
     if (_log_to_std) {               \
       fprintf(stdout, __VA_ARGS__);  \
@@ -23,7 +21,7 @@ extern bool _log_to_std;
       _libdft_out->log(__VA_ARGS__); \
       _libdft_out->unlock();         \
   }} while (0)
-#define LOGE(...)                    \
+#define LOG_ERR(...)             \
   do {                               \
     if (_log_to_std) {               \
       fprintf(stderr, __VA_ARGS__);  \
@@ -35,7 +33,7 @@ extern bool _log_to_std;
   }} while (0)
 
 #ifdef DEBUG_INFO
-#define LOGD(...)                    \
+#define LOG_DBG(...)             \
   do {                               \
     if (_log_to_std) {               \
       fprintf(stdout, __VA_ARGS__);  \
@@ -46,7 +44,7 @@ extern bool _log_to_std;
       _libdft_dbg->unlock();         \
   }} while (0)
 #else
-#define LOGD(...)
+#define LOG_DBG(...)
 #endif
 
 

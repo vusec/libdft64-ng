@@ -295,7 +295,7 @@ inline size_t REG_INDX(REG reg) {
   case REG_ZMM5:
   case REG_ZMM6:
   case REG_ZMM7:
-    LOGD("found zxmm!\n");
+    LOG_DBG("found zxmm!\n");
     break;
   default:
     break;

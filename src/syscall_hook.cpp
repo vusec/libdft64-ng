@@ -39,7 +39,7 @@ static void post_open_hook(THREADID tid, syscall_ctx_t *ctx) {
   const char *file_name = (char *)ctx->arg[SYSCALL_ARG0];
   if (strstr(file_name, FUZZING_INPUT_FILE) != NULL) {
     add_fuzzing_fd(fd);
-    LOGD("[open] fd: %d : %s \n", fd, file_name);
+    LOG_DBG("[open] fd: %d : %s \n", fd, file_name);
   }
 }
 
@@ -50,7 +50,7 @@ static void post_openat_hook(THREADID tid, syscall_ctx_t *ctx) {
   const char *file_name = (char *)ctx->arg[SYSCALL_ARG1];
   if (strstr(file_name, FUZZING_INPUT_FILE) != NULL) {
     add_fuzzing_fd(fd);
-    LOGD("[openat] fd: %d : %s \n", fd, file_name);
+    LOG_DBG("[openat] fd: %d : %s \n", fd, file_name);
   }
 }
 
@@ -60,7 +60,7 @@ static void post_dup_hook(THREADID tid, syscall_ctx_t *ctx) {
     return;
   const int old_fd = ctx->arg[SYSCALL_ARG0];
   if (is_fuzzing_fd(old_fd)) {
-    LOGD("[dup] fd: %d -> %d\n", old_fd, ret);
+    LOG_DBG("[dup] fd: %d -> %d\n", old_fd, ret);
     add_fuzzing_fd(ret);
   }
 }
@@ -73,7 +73,7 @@ static void post_dup2_hook(THREADID tid, syscall_ctx_t *ctx) {
   const int new_fd = ctx->arg[SYSCALL_ARG1];
   if (is_fuzzing_fd(old_fd)) {
     add_fuzzing_fd(new_fd);
-    LOGD("[dup2] fd: %d -> %d\n", old_fd, new_fd);
+    LOG_DBG("[dup2] fd: %d -> %d\n", old_fd, new_fd);
   }
 }
 
@@ -84,7 +84,7 @@ static void post_close_hook(THREADID tid, syscall_ctx_t *ctx) {
   const int fd = ctx->arg[SYSCALL_ARG0];
   if (is_fuzzing_fd(fd)) {
     remove_fuzzing_fd(fd);
-    LOGD("[close] fd: %d \n", fd);
+    LOG_DBG("[close] fd: %d \n", fd);
   }
 }
 
@@ -113,7 +113,7 @@ static void post_read_hook(THREADID tid, syscall_ctx_t *ctx) {
       read_off -= nr; // post
     }
 
-    LOGD("[read] fd: %d, addr: %p, offset: %d, size: %lu / %lu\n", fd,
+    LOG_DBG("[read] fd: %d, addr: %p, offset: %d, size: %lu / %lu\n", fd,
          (char *)buf, read_off, nr, count);
 
     /* set the tag markings */
@@ -126,7 +126,7 @@ static void post_read_hook(THREADID tid, syscall_ctx_t *ctx) {
     for (unsigned int i = 0; i < count; i++) {
       tag_t t = tag_alloc<tag_t>((ptroff_t) (read_off + i + 1));
       tagmap_setb(buf + i, t);
-      // LOGD("[read] %d, lb: %d,  %s\n", i, t, tag_sprint(t).c_str());
+      // LOG_DBG("[read] %d, lb: %d,  %s\n", i, t, tag_sprint(t).c_str());
     }
 
     tagmap_setb_reg(tid, DFT_REG_RAX, 0, tag_traits<tag_t>::file_len_val);
@@ -149,7 +149,7 @@ static void post_pread64_hook(THREADID tid, syscall_ctx_t *ctx) {
 
   if (is_fuzzing_fd(fd)) {
     tainted = true;
-    LOGD("[pread64] fd: %d, offset: %d, size: %lu / %lu\n", fd, read_off, nr,
+    LOG_DBG("[pread64] fd: %d, offset: %d, size: %lu / %lu\n", fd, read_off, nr,
          count);
     if (count > nr + 32) {
       count = nr + 32;
@@ -182,7 +182,7 @@ static void post_mmap_hook(THREADID tid, syscall_ctx_t *ctx) {
   //       is_fuzzing_fd(fd), buf, read_off, nr);
   if (is_fuzzing_fd(fd)) {
     tainted = true;
-    LOGD("[mmap] fd: %d, offset: %ld, size: %lu\n", fd, read_off, nr);
+    LOG_DBG("[mmap] fd: %d, offset: %ld, size: %lu\n", fd, read_off, nr);
     for (unsigned int i = 0; i < nr; i++) {
       tag_t t = tag_alloc<tag_t>((ptroff_t) (read_off + i + 1));
       tagmap_setb(buf + i, t);

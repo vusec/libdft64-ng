@@ -114,7 +114,7 @@ static void sysenter_save(THREADID tid, CONTEXT *ctx, SYSCALL_STANDARD std,
                           VOID *v) {
   /* get the syscall number */
   size_t syscall_nr = PIN_GetSyscallNumber(ctx, std);
-  // LOGD("[syscall] %ld\n", syscall_nr);
+  // LOG_DBG("[syscall] %ld\n", syscall_nr);
   /* unknown syscall; optimized branch */
   if (unlikely(syscall_nr >= SYSCALL_MAX)) {
     fprintf(stderr, "%s:%u: unknown syscall(num=%lu)", __func__, __LINE__,
@@ -307,7 +307,7 @@ static void trace_inspect(TRACE trace, VOID *v) {
       /* analyze the instruction */
       /*
       if (is_tainted())
-        LOGD("[ins] %s\n", INS_Disassemble(ins).c_str());
+        LOG_DBG("[ins] %s\n", INS_Disassemble(ins).c_str());
       */
       ins_inspect(ins);
       /*
