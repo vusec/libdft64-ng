@@ -105,7 +105,7 @@ static inline tag_t *addr_to_shadow(const void *addr)
 {
 #ifdef DEBUG_SHADOW
   if (addr < (void *)MAIN_START || addr >= (void *)MAIN_END) {
-    fprintf(stderr, "Invalid addr: %p\n", addr);
+    LOG_ERR("Invalid addr: %p\n", addr);
     exit(1);
   }
 #endif

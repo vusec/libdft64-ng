@@ -36,6 +36,7 @@
 #include <string.h>
 
 #include "tagmap.h"
+#include "debug.h"
 
 #include <inttypes.h>
 #include <sys/types.h>
@@ -123,7 +124,7 @@ memtaint_spfh_thread(void *arg)
 		/* We expect only one kind of event; verify that assumption. */
 		if (msg.event != UFFD_EVENT_PAGEFAULT)
 		{
-			fprintf(stderr, "Unexpected event on userfaultfd\n");
+			LOG_ERR("Unexpected event on userfaultfd\n");
 			exit(EXIT_FAILURE);
 		}
 

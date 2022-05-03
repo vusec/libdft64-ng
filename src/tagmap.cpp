@@ -58,7 +58,7 @@ int tagmap_alloc(void)
   int mmap_flags = MAP_FIXED | MAP_ANONYMOUS | MAP_PRIVATE | MAP_NORESERVE;
 
 #ifdef DEBUG_SHADOW
-  fprintf(stderr, "USER_START=%p, RESERVED_BYTES=%p, USER_END=%p, MAIN32_START=%p, BIN_START=%p, USER_SIZE=%p, SHADOW_START=%p, _SHADOW_SIZE=%p, SHADOW_SIZE=%p, SHADOW_END=%p, MAIN_START=%p, MAIN_SIZE=%p, MAIN_END=%p, PTR_BASE=%p\n", (void *)USER_START, (void *)RESERVED_BYTES, (void *)USER_END, (void *)MAIN32_START, (void *)BIN_START, (void *)USER_SIZE, (void *)SHADOW_START, (void *)_SHADOW_SIZE, (void *)SHADOW_SIZE, (void *)SHADOW_END, (void *)MAIN_START, (void *)MAIN_SIZE, (void *)MAIN_END, (void*)PTR_BASE);
+  LOG_ERR("USER_START=%p, RESERVED_BYTES=%p, USER_END=%p, MAIN32_START=%p, BIN_START=%p, USER_SIZE=%p, SHADOW_START=%p, _SHADOW_SIZE=%p, SHADOW_SIZE=%p, SHADOW_END=%p, MAIN_START=%p, MAIN_SIZE=%p, MAIN_END=%p, PTR_BASE=%p\n", (void *)USER_START, (void *)RESERVED_BYTES, (void *)USER_END, (void *)MAIN32_START, (void *)BIN_START, (void *)USER_SIZE, (void *)SHADOW_START, (void *)_SHADOW_SIZE, (void *)SHADOW_SIZE, (void *)SHADOW_END, (void *)MAIN_START, (void *)MAIN_SIZE, (void *)MAIN_END, (void*)PTR_BASE);
 #endif
 
   /* Map most of the address space for use as shadow memory. */
@@ -238,6 +238,6 @@ tag_t tagmap_getn_reg(THREADID tid, unsigned int reg_idx, unsigned int n) {
 
 void taint_dump(ADDRINT addr) {
   tag_t t = tagmap_getb(addr);
-  fprintf(stderr, "[taint_dump] addr=%p, tags=%s\n",
+  LOG_ERR("[taint_dump] addr=%p, tags=%s\n",
           (void *)addr, tag_sprint(t).c_str());
 }

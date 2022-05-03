@@ -86,7 +86,7 @@ static void thread_alloc(THREADID tid, CONTEXT *ctx, INT32 flags, VOID *v) {
       free(tctx_prev);
 
       /* error message */
-      fprintf(stderr, "%s:%u", __func__, __LINE__);
+      LOG_ERR("%s:%u", __func__, __LINE__);
 
       /* die */
       libdft_die();
@@ -117,7 +117,7 @@ static void sysenter_save(THREADID tid, CONTEXT *ctx, SYSCALL_STANDARD std,
   // LOG_DBG("[syscall] %ld\n", syscall_nr);
   /* unknown syscall; optimized branch */
   if (unlikely(syscall_nr >= SYSCALL_MAX)) {
-    fprintf(stderr, "%s:%u: unknown syscall(num=%lu)", __func__, __LINE__,
+    LOG_ERR("%s:%u: unknown syscall(num=%lu)", __func__, __LINE__,
             syscall_nr);
     /* syscall number is set to -1; hint for the sysexit_save() */
     threads_ctx[tid].syscall_ctx.nr = -1;
@@ -207,7 +207,7 @@ static void sysexit_save(THREADID tid, CONTEXT *ctx, SYSCALL_STANDARD std,
 
   /* unknown syscall; optimized branch */
   if (unlikely(syscall_nr < 0)) {
-    fprintf(stderr, "%s:%u: unknown syscall(num=%d)", __func__, __LINE__,
+    LOG_ERR("%s:%u: unknown syscall(num=%d)", __func__, __LINE__,
             syscall_nr);
     /* no context save and no pre-syscall callback invocation */
     return;
@@ -336,7 +336,7 @@ static inline int thread_ctx_init(void) {
   threads_ctx = new thread_ctx_t[THREAD_CTX_BLK]();
 
   if (unlikely(threads_ctx == NULL)) {
-    fprintf(stderr, "%s:%u", __func__, __LINE__);
+    LOG_ERR("%s:%u", __func__, __LINE__);
     /* failed */
     libdft_die();
     return 1;
@@ -372,7 +372,7 @@ libdft_cmd_handler(ADDRINT cmd, ADDRINT arg1, const CONTEXT *ctxt)
 		break;
 #endif
 	default:
-		fprintf(stderr, "Invalid libdft command: %lu\n", cmd);
+		LOG_ERR("Invalid libdft command: %lu\n", cmd);
 		break;
 	}
 }

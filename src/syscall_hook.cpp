@@ -178,7 +178,7 @@ static void post_mmap_hook(THREADID tid, syscall_ctx_t *ctx) {
   const ADDRINT buf = ret;
   const size_t nr = ctx->arg[SYSCALL_ARG1];
   const off_t read_off = ctx->arg[SYSCALL_ARG5];
-  // fprintf(stderr, "[mmap] fd: %d(%d), addr: %x, readoff: %ld, nr:%d \n", fd,
+  // LOG_ERR("[mmap] fd: %d(%d), addr: %x, readoff: %ld, nr:%d \n", fd,
   //       is_fuzzing_fd(fd), buf, read_off, nr);
   if (is_fuzzing_fd(fd)) {
     tainted = true;
