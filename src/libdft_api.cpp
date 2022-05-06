@@ -548,15 +548,14 @@ int ins_clr_post(syscall_desc_t *desc) {
   return 0;
 }
 
-int libdft_set_log_dir(const char *path) {
+int libdft_set_log_dir(std::string path) {
   // Write log files to specified directory
-  char buf_out[256], buf_err[256], buf_dbg[256];
-  strcpy(buf_out, path); strcat(buf_out, "/libdft.%s.out");
-  strcpy(buf_err, path); strcat(buf_err, "/libdft.%s.err");
-  strcpy(buf_dbg, path); strcat(buf_dbg, "/libdft.%s.dbg");
-  _libdft_out = new PinLogPerThread(buf_out);
-  _libdft_err = new PinLogPerThread(buf_err);
-  _libdft_dbg = new PinLogPerThread(buf_dbg);
+  std::string path_out = path + "/libdft.%s.out";
+  std::string path_err = path + "/libdft.%s.err";
+  std::string path_dbg = path + "/libdft.%s.dbg";
+  _libdft_out = new PinLogPerThread(path_out.c_str());
+  _libdft_err = new PinLogPerThread(path_err.c_str());
+  _libdft_dbg = new PinLogPerThread(path_dbg.c_str());
   _log_to_std = false; // No longer logging to stdout/stderr
   return 0;
 }

@@ -37,6 +37,7 @@
 
 #include "def.h"
 #include "tagmap.h"
+#include "pin_log.h"
 
 /*
  * all run-time data structure are defined as *_ctx_t,
@@ -87,5 +88,8 @@ int ins_set_pre(ins_desc_t *, void (*)(INS));
 int ins_clr_pre(ins_desc_t *);
 int ins_set_post(ins_desc_t *, void (*)(INS));
 int ins_clr_post(ins_desc_t *);
+
+/* logging API */
+int libdft_set_log_dir(std::string path);
 
 #endif /* __LIBDFT_API_H__ */
