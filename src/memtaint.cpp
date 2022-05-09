@@ -207,7 +207,7 @@ void memtaint_taint_all()
 	if (tagmap_all_tainted)
 		return;
 
-	LOG_OUT("Tainting all memory...\n");
+	LOG_OUT("%s: Tainting all memory...\n", __FILE__);
 
 	/* Throw away all the existing shadow memory pages. */
 	if (do_madvise(shadow_addr, shadow_size, MADV_DONTNEED) == -1)
