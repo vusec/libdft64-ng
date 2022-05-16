@@ -51,13 +51,13 @@ int main(int argc, char** argv)
 	/*
 	 * Sample expected output:
 	 * [calculated] c @0x7fffffffe1f8 = a @0x7fffffffe1f0 + b @0x7fffffffe1f4
-	 * [taint_dump] addr=0x7fffffffe1f0, tags={0x7fffffffe1f0}
-	 * [taint_dump] addr=0x7fffffffe1f4, tags={0x7fffffffe1f4}
-	 * [taint_dump] addr=0x7fffffffe1f8, tags={0x7fffffffe1f4, 0x7fffffffe1f0}
+	 * [taint_dump] addr = 0x7fffffffe1f0, tags = {0x7fffffffe1f0}
+	 * [taint_dump] addr = 0x7fffffffe1f4, tags = {0x7fffffffe1f4}
+	 * [taint_dump] addr = 0x7fffffffe1f8, tags = {0x7fffffffe1f4, 0x7fffffffe1f0}
 	 *
 	 * [stdin-read] 4 bytes into d @0x7fffffffe1fc
-	 * [taint_dump] addr=0x7fffffffe200, tags={LEN}
-	 * [taint_dump] addr=0x7fffffffe1fc, tags={+0x00000001}
+	 * [taint_dump] addr = 0x7fffffffe200, tags = {LEN}
+	 * [taint_dump] addr = 0x7fffffffe1fc, tags = {+0x00000001}
 	 */
 
 	return 0;

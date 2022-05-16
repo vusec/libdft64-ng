@@ -237,13 +237,13 @@ tag_t tagmap_getn_reg(THREADID tid, unsigned int reg_idx, unsigned int n) {
 }
 
 void taint_dump(ADDRINT addr) {
-  tag_t t = tagmap_getb(addr);
-  LOG_ERR("[taint_dump] addr=%p, tags=%s\n",
+  const tag_t t = tagmap_getb(addr);
+  LOG_ERR("[taint_dump] addr = %p, tags = %s\n",
           (void *)addr, tag_sprint(t).c_str());
 }
 
 void taint_dump_reg(THREADID tid, unsigned int reg_idx, unsigned int n) {
-  tag_t t = tagmap_getb_reg(tid, reg_idx, n);
-  LOG_ERR("[taint_dump] reg_num=%u, offset=%u, tags=%s\n",
+  const tag_t t = tagmap_getb_reg(tid, reg_idx, n);
+  LOG_ERR("[taint_dump] reg_num = %u, offset = %u, tags = %s\n",
           reg_idx, n, tag_sprint(t).c_str());
 }
