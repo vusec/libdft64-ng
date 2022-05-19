@@ -83,13 +83,14 @@ typedef struct {
 int libdft_init(void);
 void libdft_die(void);
 
+/* libdft options */
+int libdft_set_log_dir(std::string path);
+void libdft_enable_load_ptr_prop(void);
+
 /* ins API */
 int ins_set_pre(ins_desc_t *, void (*)(INS));
 int ins_clr_pre(ins_desc_t *);
 int ins_set_post(ins_desc_t *, void (*)(INS));
 int ins_clr_post(ins_desc_t *);
-
-/* logging API */
-int libdft_set_log_dir(std::string path);
 
 #endif /* __LIBDFT_API_H__ */

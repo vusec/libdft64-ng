@@ -37,6 +37,7 @@
 #include "syscall_desc.h"
 #include "syscall_hook.h"
 #include "libdft_cmd.h"
+#include "load_ptr_prop.h"
 
 /* threads context counter */
 static size_t tctx_ct = 0;
@@ -444,6 +445,22 @@ int libdft_init() {
   return 0;
 }
 
+int libdft_set_log_dir(std::string path) {
+  // Write log files to specified directory
+  std::string path_out = path + "/libdft.%s.out";
+  std::string path_err = path + "/libdft.%s.err";
+  std::string path_dbg = path + "/libdft.%s.dbg";
+  _libdft_out = new PinLogPerThread(path_out.c_str());
+  _libdft_err = new PinLogPerThread(path_err.c_str());
+  _libdft_dbg = new PinLogPerThread(path_dbg.c_str());
+  _log_to_std = false; // No longer logging to stdout/stderr
+  return 0;
+}
+
+void libdft_enable_load_ptr_prop(void) {
+  TRACE_AddInstrumentFunction(instrument_load_ptr_prop, NULL);
+}
+
 /*
  * stop the execution of the application inside the
  * tag-aware VM; the execution of the application
@@ -545,17 +562,5 @@ int ins_clr_post(syscall_desc_t *desc) {
   desc->post = NULL;
 
   /* return with success */
-  return 0;
-}
-
-int libdft_set_log_dir(std::string path) {
-  // Write log files to specified directory
-  std::string path_out = path + "/libdft.%s.out";
-  std::string path_err = path + "/libdft.%s.err";
-  std::string path_dbg = path + "/libdft.%s.dbg";
-  _libdft_out = new PinLogPerThread(path_out.c_str());
-  _libdft_err = new PinLogPerThread(path_err.c_str());
-  _libdft_dbg = new PinLogPerThread(path_dbg.c_str());
-  _log_to_std = false; // No longer logging to stdout/stderr
   return 0;
 }
