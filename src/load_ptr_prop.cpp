@@ -1,5 +1,81 @@
 #include "debug.h"
 
+static void memop_deref_before(THREADID tid, thread_ctx_t *thread_ctx, ADDRINT taddr,
+  UINT32 base_reg, UINT32 indx_reg, ADDRINT eip, ADDRINT esp) {
+
+  int vcpu_base_reg = 0;
+  switch(base_reg) {
+    case  0: break; // invalid
+    case  1: break;
+    case  2: break;
+    case  3: vcpu_base_reg = GPR_EDI; break;
+    case  4: vcpu_base_reg = GPR_ESI; break;
+    case  5: vcpu_base_reg = GPR_EBP; break;
+    case  6: vcpu_base_reg = 0; break;  // GPR_ESP does not seem to work?
+    case  7: vcpu_base_reg = GPR_EBX; break;
+    case  8: vcpu_base_reg = GPR_EDX; break;
+    case  9: vcpu_base_reg = GPR_ECX; break;
+    case 10: vcpu_base_reg = GPR_EAX; break;
+    default: break;
+  }
+
+  int vcpu_indx_reg = 0;
+  switch(indx_reg) {
+    case  0: break; // invalid
+    case  1: break;
+    case  2: break;
+    case  3: vcpu_indx_reg = GPR_EDI; break;
+    case  4: vcpu_indx_reg = GPR_ESI; break;
+    case  5: vcpu_indx_reg = GPR_EBP; break;
+    case  6: vcpu_indx_reg = GPR_ESP; break; // GPR_ESP is probably never used?
+    case  7: vcpu_indx_reg = GPR_EBX; break;
+    case  8: vcpu_indx_reg = GPR_EDX; break;
+    case  9: vcpu_indx_reg = GPR_ECX; break;
+    case 10: vcpu_indx_reg = GPR_EAX; break;
+    default: break;
+  }
+
+  for (unsigned i = 0; i < sizeof(ADDRINT); i++) {
+    tag_t tag = tagmap_getb(taddr + i);
+    if (tag.size()) return; // already tainted
+  }
+
+  // taddr is not tainted yet. record it somewhere so that we can restore this later
+  stored_tag_t *stored_tag = &stored_tags[tid % MAX_THREADS];
+
+  if (stored_tag->taddr) {
+    LOG_OUT("Slot already in use, could not store tag\n");
+    return;
+  }
+  stored_tag->taddr = taddr;
+
+  for (unsigned i = 0; i < sizeof(ADDRINT); i++){
+    tag_t tag = tagmap_getb(taddr + i);
+    stored_tag->tag[i] = tag;
+
+    if (vcpu_base_reg) tag = tag_combine(tag, thread_ctx->vcpu.gpr[vcpu_base_reg][i]); // COMBINING with base
+    if (vcpu_indx_reg) tag = tag_combine(tag, thread_ctx->vcpu.gpr[vcpu_indx_reg][i]); // COMBINING with indx
+
+    tag_dir_setb(tag_dir, taddr + i, tag);
+  }
+}
+
+
+static void memop_deref_after(THREADID tid, ADDRINT eip) {
+  stored_tag_t *stored_tag = &stored_tags[tid % MAX_THREADS];
+  if (!stored_tag->taddr) {
+    return;
+
+  // restoring taint
+  for (unsigned i = 0; i < sizeof(ADDRINT); i++) {
+    tag_t tag = stored_tag->tag[i];
+    tag_dir_setb(tag_dir, stored_tag->taddr + i, tag);
+  }
+
+  // no longer using this slot
+  stored_tag->taddr = 0;
+}
+
 void instrument_load_ptr_prop(TRACE trace, VOID *v) {
   BBL bbl;
   INS ins;
