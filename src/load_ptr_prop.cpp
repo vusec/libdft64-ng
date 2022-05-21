@@ -9,30 +9,21 @@ typedef struct {
 #define MAX_THREADS 256
 static stored_tag_t stored_tags[MAX_THREADS];
 
+// FIXME: Should pass in the size of the memop, because it may not always be ADDRINT
 static void memop_deref_before(THREADID tid, ADDRINT taddr, UINT32 base_reg, UINT32 indx_reg, ADDRINT rip, ADDRINT rsp) {
-  tag_t base_tag, indx_tag, data_tag;
-
-  // 1a. Get the tag of the base
   int libdft_base_reg = REG_INDX((REG) base_reg);
-  if (libdft_base_reg == GRP_NUM) {
-    base_tag = tag_traits<tag_t>::cleared_val; // The base_reg is either an immediate or not supported by libdft (e.g., rip)
-  } else {
-    base_tag = tagmap_getn_reg(tid, libdft_base_reg, sizeof(ADDRINT)); // The base_reg is a normal GPR
-  }
-
-  // 1b. Get the tag of the index
   int libdft_indx_reg = REG_INDX((REG) indx_reg);
-  if (libdft_indx_reg == GRP_NUM) {
-    indx_tag = tag_traits<tag_t>::cleared_val; // The indx_reg is either an immediate or not supported by libdft (e.g., rip)
-  } else {
-    indx_tag = tagmap_getn_reg(tid, libdft_indx_reg, sizeof(ADDRINT)); // The indx_reg is a normal GPR
+
+  // If the data tag is already full, skip (because adding taint to it wouldn't do anything)
+  // FIXME: If only 1 byte out of 8 is full, then this would abort the entire propagation just because of the one byte.
+  //    Does this hack still work even if the tag is full?
+  for (unsigned i = 0; i < sizeof(ADDRINT); i++) {
+    tag_t tag = tagmap_getb(taddr + i);
+    if (tag_is_full(tag)) {
+      //LOG_OUT("%s:%d: Data tag at %lx is full for the memop at 0x%lx. Returning...\n", __FILE__, __LINE__, taddr + i, rip);
+      return;
+    }
   }
-
-  // 1c. Get the tag of the data
-  data_tag = tagmap_getn(taddr, sizeof(ADDRINT));
-
-  // 2. If the data tag is already full, skip (because adding taint to it wouldn't do anything)
-  if (tag_is_full(data_tag)) return;
 
   // FIXME: If the base+indx's and/or the data's tag is empty, can we skip (at least skip some steps?)
 
@@ -55,8 +46,8 @@ static void memop_deref_before(THREADID tid, ADDRINT taddr, UINT32 base_reg, UIN
     //    Instead tagof(*0x7fff1234) depends on the ENTIRE pointer, not just the lowest byte of it.
     //    Similarly, tagof(*0x7fff1235) depends on the ENTIRE pointer, not just the second-lowest byte of it.
     // Combine the base+indx's tag with the data's tag
-    if (libdft_base_reg) tag = tag_combine(tag, tagmap_getb_reg(tid, libdft_base_reg, i)); // COMBINING with base
-    if (libdft_indx_reg) tag = tag_combine(tag, tagmap_getb_reg(tid, libdft_indx_reg, i)); // COMBINING with indx
+    if (libdft_base_reg != GRP_NUM) tag = tag_combine(tag, tagmap_getb_reg(tid, libdft_base_reg, i)); // COMBINING with base
+    if (libdft_indx_reg != GRP_NUM) tag = tag_combine(tag, tagmap_getb_reg(tid, libdft_indx_reg, i)); // COMBINING with indx
 
     tagmap_setb(taddr + i, tag);
   }
@@ -87,8 +78,7 @@ void instrument_load_ptr_prop(TRACE trace, VOID *v) {
 
       int read_memopidx = -1;
       for (unsigned i = 0; i < INS_MemoryOperandCount(ins); i++) {
-        if (INS_MemoryOperandIsRead(ins, i) &&
-          INS_MemoryOperandSize  (ins, i) == sizeof(ADDRINT)) {
+        if (INS_MemoryOperandIsRead(ins, i)) {
           if (read_memopidx != -1) {
             /* Found a second memory read operand. For example:
             *    rep cmpsb byte ptr [esi], byte ptr [edi]
@@ -115,12 +105,10 @@ void instrument_load_ptr_prop(TRACE trace, VOID *v) {
       // FIXME: Why does the mem operand have to be 8 bytes...? What about e.g., a 'mov edx, dword ptr [rbx]'.
 
       std::string ins_filename; INT32 ins_line, ins_col; PIN_GetSourceLocation(INS_Address(ins), &ins_col, &ins_line, &ins_filename);
-      if (!ins_filename.empty()) {
-        LOG_OUT("ins with 1 memory read operand: addr = %p, base_reg = %u, indx_reg = %u, ins = '%s', loc = %s:%d:%d\n",
-                (void *) INS_Address(ins), base_reg, indx_reg, INS_Disassemble(ins).c_str(),
-                ins_filename.c_str(), ins_line, ins_col);
-      }
-      else { continue; } // TODO: REMOVE!!!
+      //if (ins_filename.empty() || ins_filename.find("load-ptr") == std::string::npos || ins_line != 13) continue; // TODO: REMOVE!!!
+      //LOG_OUT("ins with 1 memory read operand: addr = %p, base_reg = %u, indx_reg = %u, ins = '%s', loc = %s:%d:%d\n",
+      //          (void *) INS_Address(ins), base_reg, indx_reg, INS_Disassemble(ins).c_str(),
+      //          ins_filename.c_str(), ins_line, ins_col);
 
       /* Instrument this instruction so that:
       * 1. compute target address for memory operand, say taddr
