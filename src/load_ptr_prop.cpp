@@ -14,33 +14,18 @@ static void memop_deref_before(THREADID tid, ADDRINT taddr, UINT32 base_reg, UIN
 
   // 1a. Get the tag of the base
   int libdft_base_reg = REG_INDX((REG) base_reg);
-  if (base_reg == REG_RIP) {
-    // It's okay if the base_reg is RIP (this is very common)
-    base_tag = tag_traits<tag_t>::cleared_val;
-  }
-  else if (libdft_base_reg == GRP_NUM) {
-    // FIXME: Reported a lot with reg 0
-    //LOG_ERR("==== %s:%d: PIN to libdft reg indx conversion not supported for reg %u\n", __FILE__, __LINE__, base_reg);
-    return;
-  }
-  else {
-    // The base_reg is a normal GPR
-    base_tag = tagmap_getn_reg(tid, libdft_base_reg, sizeof(ADDRINT));
+  if (libdft_base_reg == GRP_NUM) {
+    base_tag = tag_traits<tag_t>::cleared_val; // The base_reg is either an immediate or not supported by libdft (e.g., rip)
+  } else {
+    base_tag = tagmap_getn_reg(tid, libdft_base_reg, sizeof(ADDRINT)); // The base_reg is a normal GPR
   }
 
   // 1b. Get the tag of the index
   int libdft_indx_reg = REG_INDX((REG) indx_reg);
-  if (indx_reg == REG_INVALID()) {
-    // It's okay if the indx_reg is invalid (this is very common, because it may be an immediate)
-    indx_tag = tag_traits<tag_t>::cleared_val;
-  }
-  else if (libdft_indx_reg == GRP_NUM) {
-    LOG_ERR("==== %s:%d: PIN to libdft reg indx conversion not supported for reg %u\n", __FILE__, __LINE__, indx_reg);
-    return;
-  }
-  else {
-    // The indx_reg is a normal GPR
-    indx_tag = tagmap_getn_reg(tid, libdft_indx_reg, sizeof(ADDRINT));
+  if (libdft_indx_reg == GRP_NUM) {
+    indx_tag = tag_traits<tag_t>::cleared_val; // The indx_reg is either an immediate or not supported by libdft (e.g., rip)
+  } else {
+    indx_tag = tagmap_getn_reg(tid, libdft_indx_reg, sizeof(ADDRINT)); // The indx_reg is a normal GPR
   }
 
   // 1c. Get the tag of the data
@@ -129,8 +114,13 @@ void instrument_load_ptr_prop(TRACE trace, VOID *v) {
       // FIXME: This keep some stack ops e.g., 'ret'
       // FIXME: Why does the mem operand have to be 8 bytes...? What about e.g., a 'mov edx, dword ptr [rbx]'.
 
-      //LOG_OUT("ins with 1 memory read operand: addr = %p, base_reg = %u, indx_reg = %u, ins = '%s'\n",
-      //        (void *) INS_Address(ins), base_reg, indx_reg, INS_Disassemble(ins).c_str());
+      std::string ins_filename; INT32 ins_line, ins_col; PIN_GetSourceLocation(INS_Address(ins), &ins_col, &ins_line, &ins_filename);
+      if (!ins_filename.empty()) {
+        LOG_OUT("ins with 1 memory read operand: addr = %p, base_reg = %u, indx_reg = %u, ins = '%s', loc = %s:%d:%d\n",
+                (void *) INS_Address(ins), base_reg, indx_reg, INS_Disassemble(ins).c_str(),
+                ins_filename.c_str(), ins_line, ins_col);
+      }
+      else { continue; } // TODO: REMOVE!!!
 
       /* Instrument this instruction so that:
       * 1. compute target address for memory operand, say taddr
