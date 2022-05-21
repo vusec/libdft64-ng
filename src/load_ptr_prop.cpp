@@ -105,7 +105,7 @@ void instrument_load_ptr_prop(TRACE trace, VOID *v) {
       // FIXME: Why does the mem operand have to be 8 bytes...? What about e.g., a 'mov edx, dword ptr [rbx]'.
 
       std::string ins_filename; INT32 ins_line, ins_col; PIN_GetSourceLocation(INS_Address(ins), &ins_col, &ins_line, &ins_filename);
-      //if (ins_filename.empty() || ins_filename.find("load-ptr") == std::string::npos || ins_line != 13) continue; // TODO: REMOVE!!!
+      //if (ins_filename.empty() || ins_filename.find("apps/tests") == std::string::npos || ins_line != 25) continue; // TODO: REMOVE!!!
       //LOG_OUT("ins with 1 memory read operand: addr = %p, base_reg = %u, indx_reg = %u, ins = '%s', loc = %s:%d:%d\n",
       //          (void *) INS_Address(ins), base_reg, indx_reg, INS_Disassemble(ins).c_str(),
       //          ins_filename.c_str(), ins_line, ins_col);
@@ -115,29 +115,30 @@ void instrument_load_ptr_prop(TRACE trace, VOID *v) {
       * 2. store taint for taddr
       * 3. propagate taint from base_reg/indx_reg to taddr
       * 4. let libdft propagate taint from taddr to destination operand
-      * 5. execute instruction
-      * 6. restore taint for taddr
+      * 5. restore taint for taddr
+      * 6. execute instruction
       */
 
-      if (INS_HasFallThrough(ins)) {
-        INS_InsertCall(ins, IPOINT_BEFORE,
-            AFUNPTR(memop_deref_before),
-            IARG_CALL_ORDER, CALL_ORDER_FIRST, // we need to go before libdft
-            IARG_THREAD_ID,
-            IARG_MEMORYOP_EA, read_memopidx,
-            IARG_UINT32, base_reg,
-            IARG_UINT32, indx_reg,
-            IARG_INST_PTR,
-            IARG_REG_VALUE, LEVEL_BASE::REG_RSP,
-            IARG_END);
+      // We need to go before libdft
+      INS_InsertCall(ins, IPOINT_BEFORE,
+          AFUNPTR(memop_deref_before),
+          IARG_CALL_ORDER, CALL_ORDER_FIRST,
+          IARG_THREAD_ID,
+          IARG_MEMORYOP_EA, read_memopidx,
+          IARG_UINT32, base_reg,
+          IARG_UINT32, indx_reg,
+          IARG_INST_PTR,
+          IARG_REG_VALUE, LEVEL_BASE::REG_RSP,
+          IARG_END);
 
-        INS_InsertCall(ins, IPOINT_AFTER,
-            AFUNPTR(memop_deref_after),
-            IARG_CALL_ORDER, CALL_ORDER_LAST,
-            IARG_THREAD_ID,
-            IARG_INST_PTR,
-            IARG_END);
-      }
+      // We need to go after libdft (forunately all the libdft callbacks are inserted before the instruction)
+      // Also, we need to go before the instruction, in case it does not fall through (e.g., call [rax])
+      INS_InsertCall(ins, IPOINT_BEFORE,
+          AFUNPTR(memop_deref_after),
+          IARG_CALL_ORDER, CALL_ORDER_LAST,
+          IARG_THREAD_ID,
+          IARG_INST_PTR,
+          IARG_END);
     }
   }
 }
