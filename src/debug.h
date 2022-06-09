@@ -3,13 +3,25 @@
 #define __DEBUG_H__
 #include "pin_log.h"
 
-// #define DEBUG_INFO 1
+#include "def.h"
+
+#define DEBUG_INFO 1
+
+#define DUMP_ALL_INS // set dump_all_ins = 1 in your pintool to start dumping all ins and set it to 0 when you dumped enough (to prevent 20gb files )
+#define DUMP_TAGMAP_SETB_ID 552
+#define BRUH_ID 552
+#define BRUH_ADDR 0x1337c0de
+#define BRUH_CONTENT 0x1337c0de
+#define BRUH_DFT_REG 63
 
 /* log variables */
 extern PinLog *_libdft_out;
 extern PinLog *_libdft_err;
 extern PinLog *_libdft_dbg;
 extern bool _log_to_std;
+
+// TODO: Refactor
+#define LOGD LOG_DBG
 
 #define LOG_OUT(...)             \
   do {                               \

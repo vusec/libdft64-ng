@@ -7,5 +7,6 @@ void ins_clear_op(INS ins);
 void ins_clear_op_predicated(INS ins);
 void ins_clear_op_l2(INS ins);
 void ins_clear_op_l4(INS ins);
+void ins_vzeroupper_op(INS ins);
 
 #endif

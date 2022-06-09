@@ -56,6 +56,10 @@ PinLog *_libdft_err = NULL;
 PinLog *_libdft_dbg = NULL;
 bool _log_to_std = true;
 
+// UAVUZZ
+unsigned int dont_instrument = 0;
+int dump_all_ins = 0;
+
 /*
  * thread start callback (analysis function)
  *
@@ -272,6 +276,17 @@ static void sysexit_save(THREADID tid, CONTEXT *ctx, SYSCALL_STANDARD std,
 }
 
 /*
+//UAVUZZ
+
+//Not instrumenting these routines take off a few (as in 2) false positives... However it also makes it very slow...
+
+#define FREE_RTN_NAME "__libc_free"
+#define CALLOC_RTN_NAME "__libc_calloc"
+#define MALLOC_RTN_NAME "__libc_malloc"
+#define REALLOC_RTN_NAME "__libc_realloc"
+*/
+
+/*
  * trace inspection (instrumentation function)
  *
  * traverse the basic blocks (BBLs) on the trace and
@@ -285,6 +300,17 @@ static void trace_inspect(TRACE trace, VOID *v) {
   BBL bbl;
   INS ins;
   xed_iclass_enum_t ins_indx;
+
+  /*
+  //UAVUZZ
+  if (RTN_Valid(TRACE_Rtn(trace))) {  
+    std::string rtn_name = RTN_Name(TRACE_Rtn(trace));
+
+    if (rtn_name == FREE_RTN_NAME || rtn_name == CALLOC_RTN_NAME || rtn_name == MALLOC_RTN_NAME || rtn_name == REALLOC_RTN_NAME) return;
+  }
+
+  */
+
 
   /* traverse all the BBLs in the trace */
   for (bbl = TRACE_BblHead(trace); BBL_Valid(bbl); bbl = BBL_Next(bbl)) {
