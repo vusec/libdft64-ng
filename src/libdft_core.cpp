@@ -10,8 +10,6 @@
 
 /* threads context */
 extern thread_ctx_t *threads_ctx;
-extern int dump_all_ins;
-extern int dont_instrument;
 
 static void PIN_FAST_ANALYSIS_CALL _cbw(THREADID tid) {
   tag_t *rtag = RTAG[DFT_REG_RAX];
@@ -135,11 +133,7 @@ void ins_cmp_op(INS ins) {
   }
 }
 
-VOID dasm(char *s, void *rip) { 
-  if (dump_all_ins != 0) {
-    LOGD("[ins @ %p] %s ; dont_instrument = %d\n", rip, s, dont_instrument);
-  }
-}
+VOID dasm(char *s) { LOG_DBG("[ins] %s\n", s); }
 
 static void PIN_FAST_ANALYSIS_CALL r_unins_istaint(THREADID tid, CONTEXT *ctx, void *rip, char *s, REG reg, uint32_t width) {
   uint32_t dft_reg = REG_INDX(reg);
@@ -163,8 +157,7 @@ static void PIN_FAST_ANALYSIS_CALL r_unins_istaint(THREADID tid, CONTEXT *ctx, v
 static void PIN_FAST_ANALYSIS_CALL m_unins_istaint(THREADID tid, void *rip, char *s, ADDRINT mem, uint32_t width) {
   for (uint32_t i = 0 ; i < width ; i++) {
     if (!tag_is_empty(MTAG(mem + i))) {
-      tag_t t = tagmap_getb(mem + i);
-      LOGD("[TAINTED uninstrumented @ %p] %s | MTAG(%p + %d) tainted with id: %d\n", rip, s, (void *)mem, i, tag_to_id(t));
+      LOG_DBG("[TAINTED uninstrumented @ %p] %s | MTAG(%p + %d) tainted with id: %d\n", rip, s, (void *)mem, i, tag_to_id(tagmap_getb(mem + i)));
     }
   }
 }
@@ -203,15 +196,6 @@ void ins_uninstrumented(INS ins) { //For uninstrumented instructions check if th
  */
 void ins_inspect(INS ins) {
 
-  // LOGD("[ins] %s \n", INS_Disassemble(ins).c_str());
-  
-  #ifdef DUMP_ALL_INS
-  char *cstr;
-  cstr = new char[INS_Disassemble(ins).size() + 1];
-  strcpy(cstr, INS_Disassemble(ins).c_str());
-  INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)dasm, IARG_PTR, cstr, IARG_INST_PTR, IARG_END);
-  #endif
-  
   /* use XED to decode the instruction and extract its opcode */
   xed_iclass_enum_t ins_indx = (xed_iclass_enum_t)INS_Opcode(ins);
   /* sanity check */
@@ -221,6 +205,13 @@ void ins_inspect(INS ins) {
     return;
   }
 
+  // LOG_DBG("[ins] %s \n", INS_Disassemble(ins).c_str());
+  /*
+  char *cstr;
+  cstr = new char[INS_Disassemble(ins).size() + 1];
+  strcpy(cstr, INS_Disassemble(ins).c_str());
+  INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)dasm, IARG_PTR, cstr, IARG_INST_PTR, IARG_END);
+  */
 
   switch (ins_indx) {
   // **** bianry ****
@@ -644,7 +635,7 @@ void ins_inspect(INS ins) {
     // INT32 num_op = INS_OperandCount(ins);
     // INT32 ins_ext = INS_Extension(ins);
     // if (ins_ext != 0 && ins_ext != 10)
-    LOGD("[uninstrumented @ %p] opcode=%d, %s\n", (void *)INS_Address(ins), ins_indx,
+    LOG_DBG("[uninstrumented @ %p] opcode=%d, %s\n", (void *)INS_Address(ins), ins_indx,
          INS_Disassemble(ins).c_str());
     ins_uninstrumented(ins);
     break;

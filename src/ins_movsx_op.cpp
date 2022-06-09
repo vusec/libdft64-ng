@@ -2,8 +2,6 @@
 #include "ins_helper.h"
 #include "ins_xfer_op.h"
 
-extern unsigned int dont_instrument;
-
 /* threads context */
 extern thread_ctx_t *threads_ctx;
 
@@ -21,8 +19,6 @@ extern thread_ctx_t *threads_ctx;
  */
 static void PIN_FAST_ANALYSIS_CALL _movsx_r2r_opwb_u(THREADID tid, uint32_t dst,
                                                      uint32_t src) {
-  //if (dont_instrument != 0) return;
-  if ((REG)dst == BRUH_DFT_REG) puts("[BRUH REG]");
   /* temporary tag value */
   tag_t src_tag = RTAG[src][1];
   tag_t *rtag_dst = RTAG[dst];
@@ -34,8 +30,6 @@ static void PIN_FAST_ANALYSIS_CALL _movsx_r2r_opwb_u(THREADID tid, uint32_t dst,
 
 static void PIN_FAST_ANALYSIS_CALL _movsx_r2r_opwb_l(THREADID tid, uint32_t dst,
                                                      uint32_t src) {
-  //if (dont_instrument != 0) return;
-  if ((REG)dst == BRUH_DFT_REG) puts("[BRUH REG]");
   /* temporary tag value */
   tag_t src_tag = RTAG[src][0];
   tag_t *rtag_dst = RTAG[dst];
@@ -47,8 +41,6 @@ static void PIN_FAST_ANALYSIS_CALL _movsx_r2r_opwb_l(THREADID tid, uint32_t dst,
 
 static void PIN_FAST_ANALYSIS_CALL _movsx_r2r_oplb_u(THREADID tid, uint32_t dst,
                                                      uint32_t src) {
-  //if (dont_instrument != 0) return;
-  if ((REG)dst == BRUH_DFT_REG) puts("[BRUH REG]");
   /* temporary tag value */
   tag_t src_tag = RTAG[src][1];
   tag_t *rtag_dst = RTAG[dst];
@@ -60,8 +52,6 @@ static void PIN_FAST_ANALYSIS_CALL _movsx_r2r_oplb_u(THREADID tid, uint32_t dst,
 
 static void PIN_FAST_ANALYSIS_CALL _movsx_r2r_oplb_l(THREADID tid, uint32_t dst,
                                                      uint32_t src) {
-  //if (dont_instrument != 0) return;
-  if ((REG)dst == BRUH_DFT_REG) puts("[BRUH REG]");
   /* temporary tag value */
   tag_t src_tag = RTAG[src][0];
   tag_t *rtag_dst = RTAG[dst];
@@ -73,8 +63,6 @@ static void PIN_FAST_ANALYSIS_CALL _movsx_r2r_oplb_l(THREADID tid, uint32_t dst,
 
 static void PIN_FAST_ANALYSIS_CALL _movsx_r2r_opqb_u(THREADID tid, uint32_t dst,
                                                      uint32_t src) {
-  //if (dont_instrument != 0) return;
-  if ((REG)dst == BRUH_DFT_REG) puts("[BRUH REG]");
   /* temporary tag value */
   tag_t src_tag = RTAG[src][1];
   tag_t *rtag_dst = RTAG[dst];
@@ -86,8 +74,6 @@ static void PIN_FAST_ANALYSIS_CALL _movsx_r2r_opqb_u(THREADID tid, uint32_t dst,
 
 static void PIN_FAST_ANALYSIS_CALL _movsx_r2r_opqb_l(THREADID tid, uint32_t dst,
                                                      uint32_t src) {
-  //if (dont_instrument != 0) return;
-  if ((REG)dst == BRUH_DFT_REG) puts("[BRUH REG]");
   /* temporary tag value */
   tag_t src_tag = RTAG[src][0];
   tag_t *rtag_dst = RTAG[dst];
@@ -99,8 +85,6 @@ static void PIN_FAST_ANALYSIS_CALL _movsx_r2r_opqb_l(THREADID tid, uint32_t dst,
 
 static void PIN_FAST_ANALYSIS_CALL _movsx_r2r_oplw(THREADID tid, uint32_t dst,
                                                    uint32_t src) {
-  //if (dont_instrument != 0) return;
-  if ((REG)dst == BRUH_DFT_REG) puts("[BRUH REG]");
   /* temporary tag values */
   tag_t *rtag_src = RTAG[src];
   tag_t *rtag_dst = RTAG[dst];
@@ -112,8 +96,6 @@ static void PIN_FAST_ANALYSIS_CALL _movsx_r2r_oplw(THREADID tid, uint32_t dst,
 
 static void PIN_FAST_ANALYSIS_CALL _movsx_r2r_opqw(THREADID tid, uint32_t dst,
                                                    uint32_t src) {
-  //if (dont_instrument != 0) return;
-  if ((REG)dst == BRUH_DFT_REG) puts("[BRUH REG]");
   /* temporary tag values */
   tag_t *rtag_src = RTAG[src];
   tag_t *rtag_dst = RTAG[dst];
@@ -125,8 +107,6 @@ static void PIN_FAST_ANALYSIS_CALL _movsx_r2r_opqw(THREADID tid, uint32_t dst,
 
 static void PIN_FAST_ANALYSIS_CALL _movsx_r2r_opql(THREADID tid, uint32_t dst,
                                                    uint32_t src) {
-  //if (dont_instrument != 0) return;
-  if ((REG)dst == BRUH_DFT_REG) puts("[BRUH REG]");
   /* temporary tag values */
   tag_t *rtag_src = RTAG[src];
   tag_t *rtag_dst = RTAG[dst];
@@ -138,8 +118,6 @@ static void PIN_FAST_ANALYSIS_CALL _movsx_r2r_opql(THREADID tid, uint32_t dst,
 
 static void PIN_FAST_ANALYSIS_CALL _movsx_m2r_opwb(THREADID tid, uint32_t dst,
                                                    ADDRINT src) {
-  //if (dont_instrument != 0) return;
-  if ((REG)dst == BRUH_DFT_REG) puts("[BRUH REG]");
   /* temporary tag value */
   tag_t src_tag = MTAG(src);
   tag_t *rtag_dst = RTAG[dst];
@@ -151,8 +129,6 @@ static void PIN_FAST_ANALYSIS_CALL _movsx_m2r_opwb(THREADID tid, uint32_t dst,
 
 static void PIN_FAST_ANALYSIS_CALL _movsx_m2r_oplb(THREADID tid, uint32_t dst,
                                                    ADDRINT src) {
-  //if (dont_instrument != 0) return;
-  if ((REG)dst == BRUH_DFT_REG) puts("[BRUH REG]");
   /* temporary tag value */
   tag_t src_tag = MTAG(src);
   tag_t *rtag_dst = RTAG[dst];
@@ -164,8 +140,6 @@ static void PIN_FAST_ANALYSIS_CALL _movsx_m2r_oplb(THREADID tid, uint32_t dst,
 
 static void PIN_FAST_ANALYSIS_CALL _movsx_m2r_opqb(THREADID tid, uint32_t dst,
                                                    ADDRINT src) {
-  //if (dont_instrument != 0) return;
-  if ((REG)dst == BRUH_DFT_REG) puts("[BRUH REG]");
   /* temporary tag value */
   tag_t src_tag = MTAG(src);
   tag_t *rtag_dst = RTAG[dst];
@@ -177,8 +151,6 @@ static void PIN_FAST_ANALYSIS_CALL _movsx_m2r_opqb(THREADID tid, uint32_t dst,
 
 static void PIN_FAST_ANALYSIS_CALL _movsx_m2r_oplw(THREADID tid, uint32_t dst,
                                                    ADDRINT src) {
-  //if (dont_instrument != 0) return;
-  if ((REG)dst == BRUH_DFT_REG) puts("[BRUH REG]");
   /* temporary tag value */
   tag_t src_tags[] = M16TAG(src);
   tag_t *rtag_dst = RTAG[dst];
@@ -190,8 +162,6 @@ static void PIN_FAST_ANALYSIS_CALL _movsx_m2r_oplw(THREADID tid, uint32_t dst,
 
 static void PIN_FAST_ANALYSIS_CALL _movsx_m2r_opqw(THREADID tid, uint32_t dst,
                                                    ADDRINT src) {
-  //if (dont_instrument != 0) return;
-  if ((REG)dst == BRUH_DFT_REG) puts("[BRUH REG]");
   /* temporary tag value */
   tag_t src_tags[] = M16TAG(src);
   tag_t *rtag_dst = RTAG[dst];
@@ -203,8 +173,6 @@ static void PIN_FAST_ANALYSIS_CALL _movsx_m2r_opqw(THREADID tid, uint32_t dst,
 
 static void PIN_FAST_ANALYSIS_CALL _movsx_m2r_opql(THREADID tid, uint32_t dst,
                                                    ADDRINT src) {
-  //if (dont_instrument != 0) return;
-  if ((REG)dst == BRUH_DFT_REG) puts("[BRUH REG]");
   /* temporary tag value */
   tag_t src_tags[] = M32TAG(src);
 
@@ -221,7 +189,7 @@ static void PIN_FAST_ANALYSIS_CALL r2_bruh(THREADID tid, uint32_t src, void *src
   tag_t src_tag = RTAG[src][0]; //TODO should this loop like in the others?
 
   if (tag_to_id(src_tag) == bruh_id || src_content == (void *)BRUH_CONTENT) {
-    LOGD("[REG BRUH %d] %s ; src content = %p\n", tag_to_id(src_tag), ins_dasm, src_content);
+    LOG_DBG("[REG BRUH %d] %s ; src content = %p\n", tag_to_id(src_tag), ins_dasm, src_content);
   }
 }
 
@@ -229,7 +197,7 @@ static void PIN_FAST_ANALYSIS_CALL m2_bruh(THREADID tid, ADDRINT src, char *ins_
   tag_t src_tag = MTAG(src);
 
   if (tag_to_id(src_tag) == bruh_id || *((void **)src) == (void *)BRUH_CONTENT) {
-    LOGD("[MEM BRUH %d] %s ; src content = %p ; src addr = %p\n", tag_to_id(src_tag), ins_dasm, *((void **)src), (void *)src);
+    LOG_DBG("[MEM BRUH %d] %s ; src content = %p ; src addr = %p\n", tag_to_id(src_tag), ins_dasm, *((void **)src), (void *)src);
   }
 }
 
@@ -237,7 +205,7 @@ static void PIN_FAST_ANALYSIS_CALL r2m_bruh(THREADID tid,  uint32_t src, ADDRINT
   tag_t src_tag = RTAG[src][0]; //TODO should this loop like in the others?
 
   if (tag_to_id(src_tag) == bruh_id || (void *)dest == (void *)BRUH_ADDR || src_content == (void *)BRUH_CONTENT) {
-    LOGD("[REG BRUH %d] %s ; src content = %p ; dest addr = %p\n", tag_to_id(src_tag), ins_dasm, src_content, (void *)dest);
+    LOG_DBG("[REG BRUH %d] %s ; src content = %p ; dest addr = %p\n", tag_to_id(src_tag), ins_dasm, src_content, (void *)dest);
   }
 }
 
@@ -245,7 +213,7 @@ static void PIN_FAST_ANALYSIS_CALL m2m_bruh(THREADID tid, ADDRINT src, ADDRINT d
   tag_t src_tag = MTAG(src);
 
   if (tag_to_id(src_tag) == bruh_id || (void *)dest == (void *)BRUH_ADDR || *((void **)src) == (void *)BRUH_CONTENT) {
-    LOGD("[MEM BRUH %d] %s ; src addr = %p ; src content = %p ; dest addr = %p ; dest content = %p\n", tag_to_id(src_tag), ins_dasm, (void *)src, *((void **)src), (void *)dest, *((void **)dest));
+    LOG_DBG("[MEM BRUH %d] %s ; src addr = %p ; src content = %p ; dest addr = %p ; dest content = %p\n", tag_to_id(src_tag), ins_dasm, (void *)src, *((void **)src), (void *)dest, *((void **)dest));
   }
 }
 

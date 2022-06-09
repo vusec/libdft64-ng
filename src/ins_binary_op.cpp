@@ -1,15 +1,11 @@
 #include "ins_binary_op.h"
 #include "ins_helper.h"
 
-extern unsigned int dont_instrument;
-
 /* threads context */
 extern thread_ctx_t *threads_ctx;
 
 static void PIN_FAST_ANALYSIS_CALL r2r_binary_opb_ul(THREADID tid, uint32_t dst,
                                                      uint32_t src) {
-  //if (dont_instrument != 0) return;
-  if ((REG)dst == BRUH_DFT_REG) puts("[BRUH REG]");
   tag_t src_tag = RTAG[src][0];
   tag_t dst_tag = RTAG[dst][1];
 
@@ -18,8 +14,6 @@ static void PIN_FAST_ANALYSIS_CALL r2r_binary_opb_ul(THREADID tid, uint32_t dst,
 
 static void PIN_FAST_ANALYSIS_CALL r2r_binary_opb_lu(THREADID tid, uint32_t dst,
                                                      uint32_t src) {
-  //if (dont_instrument != 0) return;
-  if ((REG)dst == BRUH_DFT_REG) puts("[BRUH REG]");
   tag_t src_tag = RTAG[src][1];
   tag_t dst_tag = RTAG[dst][0];
 
@@ -28,8 +22,6 @@ static void PIN_FAST_ANALYSIS_CALL r2r_binary_opb_lu(THREADID tid, uint32_t dst,
 
 static void PIN_FAST_ANALYSIS_CALL r2r_binary_opb_u(THREADID tid, uint32_t dst,
                                                     uint32_t src) {
-  //if (dont_instrument != 0) return;
-  if ((REG)dst == BRUH_DFT_REG) puts("[BRUH REG]");
   tag_t src_tag = RTAG[src][1];
   tag_t dst_tag = RTAG[dst][1];
 
@@ -38,8 +30,6 @@ static void PIN_FAST_ANALYSIS_CALL r2r_binary_opb_u(THREADID tid, uint32_t dst,
 
 static void PIN_FAST_ANALYSIS_CALL r2r_binary_opb_l(THREADID tid, uint32_t dst,
                                                     uint32_t src) {
-  //if (dont_instrument != 0) return;
-  if ((REG)dst == BRUH_DFT_REG) puts("[BRUH REG]");
   tag_t src_tag = RTAG[src][0];
   tag_t dst_tag = RTAG[dst][0];
 
@@ -48,8 +38,6 @@ static void PIN_FAST_ANALYSIS_CALL r2r_binary_opb_l(THREADID tid, uint32_t dst,
 
 static void PIN_FAST_ANALYSIS_CALL r2r_binary_opw(THREADID tid, uint32_t dst,
                                                   uint32_t src) {
-  //if (dont_instrument != 0) return;
-  if ((REG)dst == BRUH_DFT_REG) puts("[BRUH REG]");
   tag_t *src_tags = RTAG[src];
   tag_t *dst_tags = RTAG[dst];
   for (size_t i = 0; i < 2; i++)
@@ -58,8 +46,6 @@ static void PIN_FAST_ANALYSIS_CALL r2r_binary_opw(THREADID tid, uint32_t dst,
 
 static void PIN_FAST_ANALYSIS_CALL r2r_binary_opl(THREADID tid, uint32_t dst,
                                                   uint32_t src) {
-  //if (dont_instrument != 0) return;
-  if ((REG)dst == BRUH_DFT_REG) puts("[BRUH REG]");
   tag_t *src_tags = RTAG[src];
   tag_t *dst_tags = RTAG[dst];
   for (size_t i = 0; i < 4; i++)
@@ -68,8 +54,6 @@ static void PIN_FAST_ANALYSIS_CALL r2r_binary_opl(THREADID tid, uint32_t dst,
 
 static void PIN_FAST_ANALYSIS_CALL r2r_binary_opq(THREADID tid, uint32_t dst,
                                                   uint32_t src) {
-  //if (dont_instrument != 0) return;
-  if ((REG)dst == BRUH_DFT_REG) puts("[BRUH REG]");
   tag_t *src_tags = RTAG[src];
   tag_t *dst_tags = RTAG[dst];
   for (size_t i = 0; i < 8; i++)
@@ -78,8 +62,6 @@ static void PIN_FAST_ANALYSIS_CALL r2r_binary_opq(THREADID tid, uint32_t dst,
 
 static void PIN_FAST_ANALYSIS_CALL r2r_binary_opx(THREADID tid, uint32_t dst,
                                                   uint32_t src) {
-  //if (dont_instrument != 0) return;
-  if ((REG)dst == BRUH_DFT_REG) puts("[BRUH REG]");
   tag_t *src_tags = RTAG[src];
   tag_t *dst_tags = RTAG[dst];
   for (size_t i = 0; i < 16; i++)
@@ -88,8 +70,6 @@ static void PIN_FAST_ANALYSIS_CALL r2r_binary_opx(THREADID tid, uint32_t dst,
 
 static void PIN_FAST_ANALYSIS_CALL r2r_binary_opy(THREADID tid, uint32_t dst,
                                                   uint32_t src) {
-  //if (dont_instrument != 0) return;
-  if ((REG)dst == BRUH_DFT_REG) puts("[BRUH REG]");
 
   tag_t *src_tags = RTAG[src];
   tag_t *dst_tags = RTAG[dst];
@@ -99,8 +79,6 @@ static void PIN_FAST_ANALYSIS_CALL r2r_binary_opy(THREADID tid, uint32_t dst,
 
 static void PIN_FAST_ANALYSIS_CALL m2r_binary_opb_u(THREADID tid, uint32_t dst,
                                                     ADDRINT src) {
-  //if (dont_instrument != 0) return;
-  if ((REG)dst == BRUH_DFT_REG) puts("[BRUH REG]");
   tag_t src_tag = MTAG(src);
   tag_t dst_tag = RTAG[dst][1];
 
@@ -109,8 +87,6 @@ static void PIN_FAST_ANALYSIS_CALL m2r_binary_opb_u(THREADID tid, uint32_t dst,
 
 static void PIN_FAST_ANALYSIS_CALL m2r_binary_opb_l(THREADID tid, uint32_t dst,
                                                     ADDRINT src) {
-  //if (dont_instrument != 0) return;
-  if ((REG)dst == BRUH_DFT_REG) puts("[BRUH REG]");
   tag_t src_tag = MTAG(src);
   tag_t dst_tag = RTAG[dst][0];
 
@@ -119,8 +95,6 @@ static void PIN_FAST_ANALYSIS_CALL m2r_binary_opb_l(THREADID tid, uint32_t dst,
 
 static void PIN_FAST_ANALYSIS_CALL m2r_binary_opw(THREADID tid, uint32_t dst,
                                                   ADDRINT src) {
-  //if (dont_instrument != 0) return;
-  if ((REG)dst == BRUH_DFT_REG) puts("[BRUH REG]");
   tag_t *dst_tags = RTAG[dst];
   for (size_t i = 0; i < 2; i++)
     dst_tags[i] = tag_combine(dst_tags[i], MTAG(src + i));
@@ -128,8 +102,6 @@ static void PIN_FAST_ANALYSIS_CALL m2r_binary_opw(THREADID tid, uint32_t dst,
 
 static void PIN_FAST_ANALYSIS_CALL m2r_binary_opl(THREADID tid, uint32_t dst,
                                                   ADDRINT src) {
-  //if (dont_instrument != 0) return;
-  if ((REG)dst == BRUH_DFT_REG) puts("[BRUH REG]");
   tag_t *dst_tags = RTAG[dst];
   for (size_t i = 0; i < 4; i++)
     dst_tags[i] = tag_combine(dst_tags[i], MTAG(src + i));
@@ -137,8 +109,6 @@ static void PIN_FAST_ANALYSIS_CALL m2r_binary_opl(THREADID tid, uint32_t dst,
 
 static void PIN_FAST_ANALYSIS_CALL m2r_binary_opq(THREADID tid, uint32_t dst,
                                                   ADDRINT src) {
-  //if (dont_instrument != 0) return;
-  if ((REG)dst == BRUH_DFT_REG) puts("[BRUH REG]");
   tag_t *dst_tags = RTAG[dst];
   for (size_t i = 0; i < 8; i++)
     dst_tags[i] = tag_combine(dst_tags[i], MTAG(src + i));
@@ -146,8 +116,6 @@ static void PIN_FAST_ANALYSIS_CALL m2r_binary_opq(THREADID tid, uint32_t dst,
 
 static void PIN_FAST_ANALYSIS_CALL m2r_binary_opx(THREADID tid, uint32_t dst,
                                                   ADDRINT src) {
-  //if (dont_instrument != 0) return;
-  if ((REG)dst == BRUH_DFT_REG) puts("[BRUH REG]");
   tag_t *dst_tags = RTAG[dst];
   for (size_t i = 0; i < 16; i++)
     dst_tags[i] = tag_combine(dst_tags[i], MTAG(src + i));
@@ -155,8 +123,6 @@ static void PIN_FAST_ANALYSIS_CALL m2r_binary_opx(THREADID tid, uint32_t dst,
 
 static void PIN_FAST_ANALYSIS_CALL m2r_binary_opy(THREADID tid, uint32_t dst,
                                                   ADDRINT src) {
-  //if (dont_instrument != 0) return;
-  if ((REG)dst == BRUH_DFT_REG) puts("[BRUH REG]");
   tag_t *dst_tags = RTAG[dst];
   for (size_t i = 0; i < 32; i++)
     dst_tags[i] = tag_combine(dst_tags[i], MTAG(src + i));
@@ -164,7 +130,6 @@ static void PIN_FAST_ANALYSIS_CALL m2r_binary_opy(THREADID tid, uint32_t dst,
 
 static void PIN_FAST_ANALYSIS_CALL r2m_binary_opb_u(THREADID tid, ADDRINT dst,
                                                     uint32_t src) {
-  //if (dont_instrument != 0) return;
   tag_t src_tag = RTAG[src][1];
   tag_t dst_tag = MTAG(dst);
 
@@ -174,7 +139,6 @@ static void PIN_FAST_ANALYSIS_CALL r2m_binary_opb_u(THREADID tid, ADDRINT dst,
 
 static void PIN_FAST_ANALYSIS_CALL r2m_binary_opb_l(THREADID tid, ADDRINT dst,
                                                     uint32_t src) {
-  //if (dont_instrument != 0) return;
   tag_t src_tag = RTAG[src][0];
   tag_t dst_tag = MTAG(dst);
 
@@ -184,7 +148,6 @@ static void PIN_FAST_ANALYSIS_CALL r2m_binary_opb_l(THREADID tid, ADDRINT dst,
 
 static void PIN_FAST_ANALYSIS_CALL r2m_binary_opw(THREADID tid, ADDRINT dst,
                                                   uint32_t src) {
-  //if (dont_instrument != 0) return;
   tag_t *src_tags = RTAG[src];
   for (size_t i = 0; i < 2; i++)
     tagmap_setb(dst + i, tag_combine(MTAG(dst + i), src_tags[i]));
@@ -192,7 +155,6 @@ static void PIN_FAST_ANALYSIS_CALL r2m_binary_opw(THREADID tid, ADDRINT dst,
 
 static void PIN_FAST_ANALYSIS_CALL r2m_binary_opl(THREADID tid, ADDRINT dst,
                                                   uint32_t src) {
-  //if (dont_instrument != 0) return;
   tag_t *src_tags = RTAG[src];
   for (size_t i = 0; i < 4; i++)
     tagmap_setb(dst + i, tag_combine(MTAG(dst + i), src_tags[i]));
@@ -200,7 +162,6 @@ static void PIN_FAST_ANALYSIS_CALL r2m_binary_opl(THREADID tid, ADDRINT dst,
 
 static void PIN_FAST_ANALYSIS_CALL r2m_binary_opq(THREADID tid, ADDRINT dst,
                                                   uint32_t src) {
-  //if (dont_instrument != 0) return;
   tag_t *src_tags = RTAG[src];
   for (size_t i = 0; i < 8; i++)
     tagmap_setb(dst + i, tag_combine(MTAG(dst + i), src_tags[i]));
@@ -208,7 +169,6 @@ static void PIN_FAST_ANALYSIS_CALL r2m_binary_opq(THREADID tid, ADDRINT dst,
 
 static void PIN_FAST_ANALYSIS_CALL r2m_binary_opx(THREADID tid, ADDRINT dst,
                                                   uint32_t src) {
-  //if (dont_instrument != 0) return;
   tag_t *src_tags = RTAG[src];
   for (size_t i = 0; i < 16; i++)
     tagmap_setb(dst + i, tag_combine(MTAG(dst + i), src_tags[i]));
@@ -216,7 +176,6 @@ static void PIN_FAST_ANALYSIS_CALL r2m_binary_opx(THREADID tid, ADDRINT dst,
 
 static void PIN_FAST_ANALYSIS_CALL r2m_binary_opy(THREADID tid, ADDRINT dst,
                                                   uint32_t src) {
-  //if (dont_instrument != 0) return;
   tag_t *src_tags = RTAG[src];
   for (size_t i = 0; i < 32; i++)
     tagmap_setb(dst + i, tag_combine(MTAG(dst + i), src_tags[i]));
@@ -228,7 +187,7 @@ static void PIN_FAST_ANALYSIS_CALL r2_bruh(THREADID tid, uint32_t src, void *src
   tag_t src_tag = RTAG[src][0]; //TODO should this loop like in the others?
 
   if (tag_to_id(src_tag) == bruh_id || src_content == (void *)BRUH_CONTENT) {
-    LOGD("[REG BRUH %d] %s ; src content = %p\n", tag_to_id(src_tag), ins_dasm, src_content);
+    LOG_DBG("[REG BRUH %d] %s ; src content = %p\n", tag_to_id(src_tag), ins_dasm, src_content);
   }
 }
 
@@ -236,7 +195,7 @@ static void PIN_FAST_ANALYSIS_CALL m2_bruh(THREADID tid, ADDRINT src, char *ins_
   tag_t src_tag = MTAG(src);
 
   if (tag_to_id(src_tag) == bruh_id || *((void **)src) == (void *)BRUH_CONTENT) {
-    LOGD("[MEM BRUH %d] %s ; src content = %p ; src addr = %p\n", tag_to_id(src_tag), ins_dasm, *((void **)src), (void *)src);
+    LOG_DBG("[MEM BRUH %d] %s ; src content = %p ; src addr = %p\n", tag_to_id(src_tag), ins_dasm, *((void **)src), (void *)src);
   }
 }
 
@@ -244,7 +203,7 @@ static void PIN_FAST_ANALYSIS_CALL r2m_bruh(THREADID tid,  uint32_t src, ADDRINT
   tag_t src_tag = RTAG[src][0]; //TODO should this loop like in the others?
 
   if (tag_to_id(src_tag) == bruh_id || (void *)dest == (void *)BRUH_ADDR || src_content == (void *)BRUH_CONTENT) {
-    LOGD("[REG BRUH %d] %s ; src content = %p ; dest addr = %p\n", tag_to_id(src_tag), ins_dasm, src_content, (void *)dest);
+    LOG_DBG("[REG BRUH %d] %s ; src content = %p ; dest addr = %p\n", tag_to_id(src_tag), ins_dasm, src_content, (void *)dest);
   }
 }
 
@@ -252,7 +211,7 @@ static void PIN_FAST_ANALYSIS_CALL m2m_bruh(THREADID tid, ADDRINT src, ADDRINT d
   tag_t src_tag = MTAG(src);
 
   if (tag_to_id(src_tag) == bruh_id || (void *)dest == (void *)BRUH_ADDR || *((void **)src) == (void *)BRUH_CONTENT) {
-    LOGD("[MEM BRUH %d] %s ; src addr = %p ; src content = %p ; dest addr = %p ; dest content = %p\n", tag_to_id(src_tag), ins_dasm, (void *)src, *((void **)src), (void *)dest, *((void **)dest));
+    LOG_DBG("[MEM BRUH %d] %s ; src addr = %p ; src content = %p ; dest addr = %p ; dest content = %p\n", tag_to_id(src_tag), ins_dasm, (void *)src, *((void **)src), (void *)dest, *((void **)dest));
   }
 }
 
