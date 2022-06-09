@@ -37,7 +37,6 @@
 
 #include "tagmap.h"
 #include "debug.h"
-#include "memtaint.h"
 
 #include <inttypes.h>
 #include <sys/types.h>
@@ -69,10 +68,6 @@
 int tagmap_all_tainted;
 static void *shadow_addr;
 static size_t shadow_size;
-
-#define MAX_MEMTAINT_CALLBACKS 100
-static size_t num_memtaint_callbacks = 0;
-memtaint_callback memtaint_callbacks[MAX_MEMTAINT_CALLBACKS];
 
 static int
 do_ioctl(int fd, unsigned long request, void *p)
@@ -207,24 +202,6 @@ void memtaint_init(void *addr, size_t len)
 #endif
 }
 
-void memtaint_add_callback(memtaint_callback fun)
-{
-	if (num_memtaint_callbacks >= MAX_MEMTAINT_CALLBACKS) {
-		LOG_ERR("%s: Cannot add memtaint callback\n", __FILE__);
-		return;
-	}
-
-	LOG_OUT("%s: Adding memtaint callback\n", __FILE__);
-	memtaint_callbacks[num_memtaint_callbacks] = fun;
-	num_memtaint_callbacks++;
-}
-
-void memtaint_exec_callbacks() {
-	for (size_t i = 0; i < num_memtaint_callbacks; i++) {
-		memtaint_callbacks[i]();
-	}
-}
-
 void memtaint_taint_all()
 {
 	if (tagmap_all_tainted)
@@ -243,7 +220,5 @@ void memtaint_taint_all()
 
 	/* Demand-page identity pages from now on. */
 	tagmap_all_tainted = 1;
-
-	memtaint_exec_callbacks();
 }
 #endif /* LIBDFT_TAG_PTR */
