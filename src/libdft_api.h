@@ -59,11 +59,12 @@ typedef struct {
  * only up to SYSCALL_ARGS (i.e., 6) are saved
  */
 typedef struct {
-  int nr;                       /* syscall number */
-  ADDRINT arg[SYSCALL_ARG_NUM]; /* arguments */
-  ADDRINT ret;                  /* return value */
-  void *aux;                    /* auxiliary data */
-  /* 	ADDRINT errno; */       /* error code */
+  int nr;                           /* syscall number */
+  ADDRINT arg[SYSCALL_ARG_NUM];     /* arguments */
+  tag_t arg_taint[SYSCALL_ARG_NUM]; /* arguments' taint */
+  ADDRINT ret;                      /* return value */
+  void *aux;                        /* auxiliary data */
+  /* ADDRINT errno; */              /* error code */
 } syscall_ctx_t;
 
 /* thread context definition */

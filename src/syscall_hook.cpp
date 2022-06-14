@@ -13,7 +13,6 @@
 
 #define FUZZING_INPUT_FILE "cur_input"
 
-extern syscall_desc_t syscall_desc[SYSCALL_MAX];
 std::set<int> fuzzing_fd_set;
 static unsigned int stdin_read_off = 0;
 static bool tainted = false;

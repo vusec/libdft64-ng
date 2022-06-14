@@ -15,6 +15,8 @@ typedef struct {
   void (*post)(THREADID, syscall_ctx_t *); /* post-syscall callback */
 } syscall_desc_t;
 
+extern syscall_desc_t syscall_desc[SYSCALL_MAX];
+
 /* syscall API */
 int syscall_set_pre(syscall_desc_t *, void (*)(THREADID, syscall_ctx_t *));
 int syscall_clr_pre(syscall_desc_t *);
