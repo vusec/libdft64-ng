@@ -44,9 +44,6 @@ static size_t tctx_ct = 0;
 /* threads context */
 thread_ctx_t *threads_ctx = NULL;
 
-/* syscall descriptors */
-extern syscall_desc_t syscall_desc[SYSCALL_MAX];
-
 /* ins descriptors */
 ins_desc_t ins_desc[XED_ICLASS_LAST];
 
@@ -100,6 +97,24 @@ static void thread_alloc(THREADID tid, CONTEXT *ctx, INT32 flags, VOID *v) {
 
 // thread_free?
 
+static tag_t sysenter_get_arg_taint(THREADID tid, unsigned arg_num) {
+  switch (arg_num) {
+  case SYSCALL_ARG0: // ARG0 in RDI
+    return tagmap_getn_reg(tid, DFT_REG_RDI, sizeof(ADDRINT));
+  case SYSCALL_ARG1: // ARG1 in RSI
+    return tagmap_getn_reg(tid, DFT_REG_RSI, sizeof(ADDRINT));
+  case SYSCALL_ARG2: // ARG2 in RDX
+    return tagmap_getn_reg(tid, DFT_REG_RDX, sizeof(ADDRINT));
+  case SYSCALL_ARG3: // ARG3 in R10
+    return tagmap_getn_reg(tid, DFT_REG_R10, sizeof(ADDRINT));
+  case SYSCALL_ARG4: // ARG4 in R8
+    return tagmap_getn_reg(tid, DFT_REG_R8, sizeof(ADDRINT));
+  case SYSCALL_ARG5: // ARG5 in R9
+    return tagmap_getn_reg(tid, DFT_REG_R9, sizeof(ADDRINT));
+  }
+  assert(false); // Unexpected number of args. Should never be reached.
+}
+
 /*
  * syscall enter notification (analysis function)
  *
@@ -129,59 +144,24 @@ static void sysenter_save(THREADID tid, CONTEXT *ctx, SYSCALL_STANDARD std,
   /* pass the system call number to sysexit_save() */
   threads_ctx[tid].syscall_ctx.nr = syscall_nr;
 
-  /*
-   * check if we need to save the arguments for that syscall
-   *
-   * we save only when we have a callback registered or the syscall
-   * returns a value in the arguments
-   */
-  if (syscall_desc[syscall_nr].save_args |
-      syscall_desc[syscall_nr].retval_args) {
-    /*
-     * dump only the appropriate number of arguments
-     * or yet another lame way to avoid a loop (vpk)
-     */
-    switch (syscall_desc[syscall_nr].nargs) {
-    /* 6 */
-    case SYSCALL_ARG5 + 1:
-      threads_ctx[tid].syscall_ctx.arg[SYSCALL_ARG5] =
-          PIN_GetSyscallArgument(ctx, std, SYSCALL_ARG5);
-      /* 5 */
-    case SYSCALL_ARG4 + 1:
-      threads_ctx[tid].syscall_ctx.arg[SYSCALL_ARG4] =
-          PIN_GetSyscallArgument(ctx, std, SYSCALL_ARG4);
-      /* 4 */
-    case SYSCALL_ARG3 + 1:
-      threads_ctx[tid].syscall_ctx.arg[SYSCALL_ARG3] =
-          PIN_GetSyscallArgument(ctx, std, SYSCALL_ARG3);
-      /* 3 */
-    case SYSCALL_ARG2 + 1:
-      threads_ctx[tid].syscall_ctx.arg[SYSCALL_ARG2] =
-          PIN_GetSyscallArgument(ctx, std, SYSCALL_ARG2);
-      /* 2 */
-    case SYSCALL_ARG1 + 1:
-      threads_ctx[tid].syscall_ctx.arg[SYSCALL_ARG1] =
-          PIN_GetSyscallArgument(ctx, std, SYSCALL_ARG1);
-      /* 1 */
-    case SYSCALL_ARG0 + 1:
-      threads_ctx[tid].syscall_ctx.arg[SYSCALL_ARG0] =
-          PIN_GetSyscallArgument(ctx, std, SYSCALL_ARG0);
-      /* default */
-    default:
-      /* nothing to do */
-      break;
-    }
-
-    /*
-     * dump the architectural state of the processor;
-     * saved as "auxiliary" data
-     */
-    threads_ctx[tid].syscall_ctx.aux = ctx;
-
-    /* call the pre-syscall callback (if any); optimized branch */
-    if (unlikely(syscall_desc[syscall_nr].pre != NULL))
-      syscall_desc[syscall_nr].pre(tid, &threads_ctx[tid].syscall_ctx);
+  /* save the arguments and arguments' taint */
+  memset(&threads_ctx[tid].syscall_ctx.arg[0], 0, SYSCALL_ARG_NUM*sizeof(ADDRINT));
+  memset(&threads_ctx[tid].syscall_ctx.arg_taint[0], 0, SYSCALL_ARG_NUM*sizeof(tag_t));
+  for (size_t i = 0; i < syscall_desc[syscall_nr].nargs; i++) {
+    ADDRINT this_arg = PIN_GetSyscallArgument(ctx, std, i);
+    threads_ctx[tid].syscall_ctx.arg[i] = this_arg;
+    threads_ctx[tid].syscall_ctx.arg_taint[i] = sysenter_get_arg_taint(tid, i);
   }
+
+  /*
+   * dump the architectural state of the processor;
+   * saved as "auxiliary" data
+   */
+  threads_ctx[tid].syscall_ctx.aux = ctx;
+
+  /* call the pre-syscall callback (if any); optimized branch */
+  if (unlikely(syscall_desc[syscall_nr].pre != NULL))
+    syscall_desc[syscall_nr].pre(tid, &threads_ctx[tid].syscall_ctx);
 }
 
 /*

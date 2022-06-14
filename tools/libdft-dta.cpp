@@ -68,9 +68,6 @@ extern REG thread_ctx_ptr;
 /* ins descriptors */
 extern ins_desc_t ins_desc[XED_ICLASS_LAST];
 
-/* syscall descriptors */
-extern syscall_desc_t syscall_desc[SYSCALL_MAX];
-
 /* set of interesting descriptors (sockets) */
 static set<int> fdset;
 
