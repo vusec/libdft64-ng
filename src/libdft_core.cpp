@@ -210,7 +210,7 @@ void ins_inspect(INS ins) {
   char *cstr;
   cstr = new char[INS_Disassemble(ins).size() + 1];
   strcpy(cstr, INS_Disassemble(ins).c_str());
-  INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)dasm, IARG_PTR, cstr, IARG_INST_PTR, IARG_END);
+  INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)dasm, IARG_PTR, cstr, IARG_END);
   */
 
   switch (ins_indx) {
@@ -226,29 +226,22 @@ void ins_inspect(INS ins) {
   case XED_ICLASS_POR:
     ins_binary_op(ins);
     break;
-  case XED_ICLASS_SUB: // TODO for uavuzz : calculating difference between 2 pointers propagates a taint which is obviously invalid. Could also be prevented by sanity checking when rewarding dangling ptr reuse...
+  case XED_ICLASS_XOR:
   case XED_ICLASS_SBB:
+  case XED_ICLASS_SUB:
+  case XED_ICLASS_PXOR:
   case XED_ICLASS_SUBSD:
   case XED_ICLASS_PSUBB:
   case XED_ICLASS_PSUBW:
   case XED_ICLASS_PSUBD:
-    ins_clear_op(ins); //UAVUZZ
-    break;
-  case XED_ICLASS_XOR:
-  case XED_ICLASS_PXOR:
   case XED_ICLASS_XORPS:
   case XED_ICLASS_XORPD:
-    ins_clear_op(ins); //UAVUZZ
-    reg_eq(ins); //To avoid warning
-    break;
-    /*
     if (reg_eq(ins)) {
       ins_clear_op(ins);
     } else {
       ins_binary_op(ins);
     }
     break;
-    */
   case XED_ICLASS_DIV:
   case XED_ICLASS_IDIV:
   case XED_ICLASS_MUL:
@@ -492,11 +485,11 @@ void ins_inspect(INS ins) {
     break;
   case XED_ICLASS_CALL_FAR:
   case XED_ICLASS_CALL_NEAR:
-    M_CLEAR_N(8); // UAVUZZ
+    M_CLEAR_N(8);
     break;
-    // TODO
-  //UAVUZZ
-  //Instructions below are instrumented strictly with 64bit pointer propagation in mind. So instructions that move less than 8 bytes will most likely clear the dest operand taint
+  // TODO: Unimplemented. Clearing taint just to be safe.
+  // TODO: Instructions that move fewer than 8 bytes might inadvertently clear the _entire_ dest operand's taint.
+  // ** TODO: Still need to go through Mans's changes below here **
   case XED_ICLASS_VPBROADCASTB: //Since this only broadcasts a byte it cant be used for pointer transmission so it makes sense to clear for UAVUZZ
   case XED_ICLASS_VPXOR:
   case XED_ICLASS_VXORPS:
