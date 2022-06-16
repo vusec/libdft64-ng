@@ -353,7 +353,7 @@ void ins_xfer_op(INS ins) {
           M2R_CALL(m2r_xfer_opx, reg_dst);
           break;
         default:
-          printf("unsupported | %s | src memory operand size: %ld\n", INS_Disassemble(ins).c_str(), INS_MemoryOperandSize(ins, 0));
+          LOG_ERR("unsupported | %s | src memory operand size: %ld\n", INS_Disassemble(ins).c_str(), INS_MemoryOperandSize(ins, 0));
           abort();
       }
       M2R_CALL(m2r_xfer_opx, reg_dst);

@@ -144,12 +144,11 @@ static void PIN_FAST_ANALYSIS_CALL r_unins_istaint(THREADID tid, CONTEXT *ctx, v
 
       PIN_GetContextRegval(ctx, reg, reg_content);
 
-      tag_t t = tagmap_getb_reg(tid, dft_reg, i);
-      printf("[TAINTED uninstrumented @ %p] %s | RTAG[%d][%d] tainted with id: %d | reg content = ", rip, s, dft_reg, i, tag_to_id(t));
+      LOG_DBG("[TAINTED uninstrumented @ %p] %s | RTAG[%d][%d] tainted with id: %d | reg content = ", rip, s, dft_reg, i, tag_to_id(tagmap_getb_reg(tid, dft_reg, i)));
       for (int j = width - 1 ; j >= 0 ; j--) {
-        printf("%02x", (unsigned char)reg_content[j]);
+        LOG_DBG("%02x", (unsigned char)reg_content[j]);
       }
-      printf("\n");
+      LOG_DBG("\n");
     }
   }
 }
@@ -487,33 +486,31 @@ void ins_inspect(INS ins) {
   case XED_ICLASS_CALL_NEAR:
     M_CLEAR_N(8);
     break;
-  // TODO: Unimplemented. Clearing taint just to be safe.
-  // TODO: Instructions that move fewer than 8 bytes might inadvertently clear the _entire_ dest operand's taint.
-  // ** TODO: Still need to go through Mans's changes below here **
-  case XED_ICLASS_VPBROADCASTB: //Since this only broadcasts a byte it cant be used for pointer transmission so it makes sense to clear for UAVUZZ
-  case XED_ICLASS_VPXOR:
-  case XED_ICLASS_VXORPS:
-  case XED_ICLASS_VPOR: //Not sure about this. Or can be used to set info on a pointer (a bit indicating something)
-  case XED_ICLASS_ORPS: // Not sure see above
+  // TODO
+  case XED_ICLASS_XGETBV:
   case XED_ICLASS_PMOVMSKB:
-  case XED_ICLASS_VPCMPEQB: //Not sure about this one
-  case XED_ICLASS_PSLLDQ:
-  case XED_ICLASS_PSRLDQ:
   case XED_ICLASS_VPMOVMSKB:
-  case XED_ICLASS_VMULSD:
   case XED_ICLASS_PUNPCKLBW:
   case XED_ICLASS_PUNPCKLWD:
-  case XED_ICLASS_UNPCKLPS:
   case XED_ICLASS_PSHUFD:
+  case XED_ICLASS_PMINUB:
+  case XED_ICLASS_PSLLDQ:
+  case XED_ICLASS_PSRLDQ:
+  case XED_ICLASS_VPCMPEQB:
+  case XED_ICLASS_VPBROADCASTB:
+  case XED_ICLASS_BSWAP:
+  case XED_ICLASS_VXORPS:
+  case XED_ICLASS_ORPS:
+  case XED_ICLASS_UNPCKLPS:
   case XED_ICLASS_SHUFPD:
-  case XED_ICLASS_ANDPS: // Not sure, can ands be used for pointer operations??? Or as some sort of NOP???
-  case XED_ICLASS_ANDNPS: // Not sure if this gets used for ptr operations either...
-  case XED_ICLASS_ANDPD: // See above :)
-  case XED_ICLASS_MINSS: // Not sure about this, mins could maybe be used in some form of pointer arithmetic. However it seems to be for floating points but you never know..... Implementing with compare shouldnt be too difficult
-  case XED_ICLASS_MAXSS: // Same as for MINSS
+  case XED_ICLASS_ANDPS:
+  case XED_ICLASS_ANDNPS:
+  case XED_ICLASS_ANDPD:
+  case XED_ICLASS_MINSS:
+  case XED_ICLASS_MAXSS:
   case XED_ICLASS_MULSS:
   case XED_ICLASS_DIVSS:
-  case XED_ICLASS_CVTTSS2SI: // Floating point to int... Surely doesnt get used for ptr ops right XD
+  case XED_ICLASS_CVTTSS2SI:
   case XED_ICLASS_CVTTSD2SI:
   case XED_ICLASS_CVTTPS2DQ:
   case XED_ICLASS_CVTSI2SS:
@@ -521,11 +518,11 @@ void ins_inspect(INS ins) {
   case XED_ICLASS_CVTDQ2PS:
   case XED_ICLASS_VCVTSI2SD:
   case XED_ICLASS_PEXTRW:
-  case XED_ICLASS_SHUFPS: // Not sure about this one
+  case XED_ICLASS_SHUFPS:
   case XED_ICLASS_SUBSS:
   case XED_ICLASS_VFMADD213SD:
   case XED_ICLASS_VFMADD132SD:
-    ins_clear_op(ins);
+    ins_uninstrumented(ins);
     break;
   case XED_ICLASS_PUNPCKLQDQ:
     ins_punpcklqdq(ins);
@@ -546,14 +543,14 @@ void ins_inspect(INS ins) {
   case XED_ICLASS_VMOVSD:
     ins_vmovsd_op(ins);
     break;
-  case XED_ICLASS_XGETBV:
-  case XED_ICLASS_PMINUB:
-  case XED_ICLASS_BSWAP: //This can probably stay uninstrumented since it just reverses byte order
   case XED_ICLASS_UNPCKLPD:
   case XED_ICLASS_PSHUFB:
   case XED_ICLASS_VPTEST:
     // TODO: ternary
+  case XED_ICLASS_VMULSD:
   case XED_ICLASS_VDIVSD:
+  case XED_ICLASS_VPOR:
+  case XED_ICLASS_VPXOR:
   case XED_ICLASS_VPSUBB:
   case XED_ICLASS_VPSUBW:
   case XED_ICLASS_VPSUBD:
