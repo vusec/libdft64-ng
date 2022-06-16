@@ -21,7 +21,6 @@ static bool tainted = false;
 inline bool is_tainted() { return tainted; }
 
 static inline bool is_fuzzing_fd(int fd) {
-  return false; // UAVUZZ
   return fd == STDIN_FILENO || fuzzing_fd_set.count(fd) > 0;
 }
 

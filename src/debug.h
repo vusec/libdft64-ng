@@ -5,12 +5,6 @@
 
 // #define DEBUG_INFO 1
 
-#define DUMP_TAGMAP_SETB_ID 552
-#define BRUH_ID 552
-#define BRUH_ADDR 0x1337c0de
-#define BRUH_CONTENT 0x1337c0de
-#define BRUH_DFT_REG 63
-
 /* log variables */
 extern PinLog *_libdft_out;
 extern PinLog *_libdft_err;

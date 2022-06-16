@@ -204,19 +204,9 @@ void PIN_FAST_ANALYSIS_CALL r2m_xfer_opq_h(THREADID tid, ADDRINT dst,
     tagmap_setb(dst + i, src_tags[i + 8]);
 }
 
-void PIN_FAST_ANALYSIS_CALL r2r_xfer_opx_lq_to_hq(THREADID tid, uint32_t dst, uint32_t src) { //UAVUZZ TODO check if correct
-
-  for (size_t i = 0 ; i < 8 ; i++) {
+void PIN_FAST_ANALYSIS_CALL r2r_xfer_opx_lq_to_hq(THREADID tid, uint32_t dst, uint32_t src) {
+  for (size_t i = 0; i < 8; i++)
     RTAG[dst][i + 8] = RTAG[src][i];
-  }
-}
-
-//This function is exactly same as m2r_xfer_opq_h XD
-void PIN_FAST_ANALYSIS_CALL m2r_xfer_opx_lq_to_hq(THREADID tid, uint32_t dst, ADDRINT src) { //UAVUZZ TODO check if correct
-
-  for (size_t i = 0 ; i < 8 ; i++) {
-    RTAG[dst][i + 8] = MTAG(src + i);
-  }
 }
 
 static void PIN_FAST_ANALYSIS_CALL r2m_xfer_opbn(THREADID tid, ADDRINT dst,
@@ -314,81 +304,11 @@ static void PIN_FAST_ANALYSIS_CALL _lea_opq(THREADID tid, uint32_t dst,
     RTAG[dst][i] = tag_combine(RTAG[base][i], RTAG[index][i]);
 }
 
-static const unsigned int bruh_id = BRUH_ID;
-
-static void PIN_FAST_ANALYSIS_CALL r2_bruh(THREADID tid, uint32_t src, void *src_content, char *ins_dasm) {
-  tag_t src_tag = RTAG[src][0]; //TODO should this loop like in the others?
-
-  if (tag_to_id(src_tag) == bruh_id || src_content == (void *)BRUH_CONTENT) {
-    LOG_DBG("[REG BRUH %d] %s ; src content = %p\n", tag_to_id(src_tag), ins_dasm, src_content);
-  }
-}
-
-static void PIN_FAST_ANALYSIS_CALL m2_bruh(THREADID tid, ADDRINT src, char *ins_dasm) {
-  tag_t src_tag = MTAG(src);
-
-  if (tag_to_id(src_tag) == bruh_id || *((void **)src) == (void *)BRUH_CONTENT) {
-    LOG_DBG("[MEM BRUH %d] %s ; src content = %p ; src addr = %p\n", tag_to_id(src_tag), ins_dasm, *((void **)src), (void *)src);
-  }
-}
-
-static void PIN_FAST_ANALYSIS_CALL r2m_bruh(THREADID tid, uint32_t src, ADDRINT dest, void *src_content, char *ins_dasm) {
-  tag_t src_tag = RTAG[src][0]; //TODO should this loop like in the others?
-
-  if (tag_to_id(src_tag) == bruh_id || (void *)dest == (void *)BRUH_ADDR || src_content == (void *)BRUH_CONTENT) {
-    LOG_DBG("[REG BRUH %d] %s ; src content = %p ; dest addr = %p\n", tag_to_id(src_tag), ins_dasm, src_content, (void *)dest);
-  }
-}
-
-static void PIN_FAST_ANALYSIS_CALL m2m_bruh(THREADID tid, ADDRINT src, ADDRINT dest, char *ins_dasm) {
-  tag_t src_tag = MTAG(src);
-
-  if (tag_to_id(src_tag) == bruh_id || (void *)dest == (void *)BRUH_ADDR || *((void **)src) == (void *)BRUH_CONTENT) {
-    LOG_DBG("[MEM BRUH %d] %s ; src addr = %p ; src content = %p ; dest addr = %p ; dest content = %p\n", tag_to_id(src_tag), ins_dasm, (void *)src, *((void **)src), (void *)dest, *((void **)dest));
-  }
-}
-
-static void insert_r2_bruh(INS ins, REG reg_src)
-{
-  char *cstr;
-  cstr = new char[INS_Disassemble(ins).size() + 1];
-  strcpy(cstr, INS_Disassemble(ins).c_str());
-  if (INS_IsMemoryWrite(ins)) {
-    if (REG_is_gr_type(reg_src) || REG_is_gr32(reg_src)) {
-      INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)r2m_bruh, IARG_FAST_ANALYSIS_CALL, IARG_THREAD_ID, IARG_UINT32, REG_INDX(reg_src), IARG_MEMORYWRITE_EA, IARG_REG_VALUE, reg_src, IARG_PTR, cstr, IARG_END);
-    } else {
-      INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)r2m_bruh, IARG_FAST_ANALYSIS_CALL, IARG_THREAD_ID, IARG_UINT32, REG_INDX(reg_src), IARG_MEMORYWRITE_EA, IARG_PTR, NULL, IARG_PTR, cstr, IARG_END);
-    }
-  } else {
-    if (REG_is_gr_type(reg_src) || REG_is_gr32(reg_src)) {
-      INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)r2_bruh, IARG_FAST_ANALYSIS_CALL, IARG_THREAD_ID, IARG_UINT32, REG_INDX(reg_src), IARG_REG_VALUE, reg_src, IARG_PTR, cstr, IARG_END);
-    } else {
-      INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)r2_bruh, IARG_FAST_ANALYSIS_CALL, IARG_THREAD_ID, IARG_UINT32, REG_INDX(reg_src), IARG_PTR, NULL, IARG_PTR, cstr, IARG_END);
-    }
-  }
-}
-
-static void insert_m2_bruh(INS ins)
-{
-  char *cstr;
-  cstr = new char[INS_Disassemble(ins).size() + 1];
-  strcpy(cstr, INS_Disassemble(ins).c_str());
-
-  if (INS_IsMemoryWrite(ins)) {
-    INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)m2m_bruh, IARG_FAST_ANALYSIS_CALL, IARG_THREAD_ID, IARG_MEMORYREAD_EA, IARG_MEMORYWRITE_EA, IARG_PTR, cstr, IARG_END);
-  } else {
-    INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)m2_bruh, IARG_FAST_ANALYSIS_CALL, IARG_THREAD_ID, IARG_MEMORYREAD_EA, IARG_PTR, cstr, IARG_END);
-  }
-}
-
 void ins_xfer_op(INS ins) {
   REG reg_dst, reg_src;
   if (INS_MemoryOperandCount(ins) == 0) {
     reg_dst = INS_OperandReg(ins, OP_0);
     reg_src = INS_OperandReg(ins, OP_1);
-
-    insert_r2_bruh(ins, reg_src);
-
     if (REG_is_gr64(reg_dst)) {
       R2R_CALL(r2r_xfer_opq, reg_dst, reg_src);
     } else if (REG_is_gr32(reg_dst)) {
@@ -414,17 +334,15 @@ void ins_xfer_op(INS ins) {
     }
   } else if (INS_OperandIsMemory(ins, OP_1)) {
     reg_dst = INS_OperandReg(ins, OP_0);
-
-    insert_m2_bruh(ins);
-
     if (REG_is_gr64(reg_dst)) {
       M2R_CALL(m2r_xfer_opq, reg_dst);
     } else if (REG_is_gr32(reg_dst)) {
       M2R_CALL(m2r_xfer_opl, reg_dst);
     } else if (REG_is_gr16(reg_dst)) {
       M2R_CALL(m2r_xfer_opw, reg_dst);
-    } else if (REG_is_xmm(reg_dst)) { //TODO this switch is for movq but maybe this invalidates some other instructions??? Maybe make seperate handler for movq? But then can reoccur at other ins....
-      switch (INS_MemoryOperandSize(ins, 0)) { //TODO Its the first memory operand but not the first operand in general?? Is this correct?
+    } else if (REG_is_xmm(reg_dst)) { // TODO: Something similar might be needed for other instructions and operand sizes (e.g., YMM, GR64, GR32, etc.?)
+      // Prevents incorrect tainting when src reg size does not match XMM size
+      switch (INS_MemoryOperandSize(ins, 0)) { // TODO: Its the first memory operand but not the first operand in general?? Is this correct?
         case 4:
           M2R_CALL(m2r_xfer_opl, reg_dst);
           break;
@@ -450,17 +368,15 @@ void ins_xfer_op(INS ins) {
     }
   } else {
     reg_src = INS_OperandReg(ins, OP_1);
-
-    insert_r2_bruh(ins, reg_src);
-
     if (REG_is_gr64(reg_src)) {
       R2M_CALL(r2m_xfer_opq, reg_src);
     } else if (REG_is_gr32(reg_src)) {
       R2M_CALL(r2m_xfer_opl, reg_src);
     } else if (REG_is_gr16(reg_src)) {
       R2M_CALL(r2m_xfer_opw, reg_src);
-    } else if (REG_is_xmm(reg_src) || REG_is_ymm(reg_src)) { //UAVUZZ
-      switch (INS_MemoryOperandSize(ins, 0)) { //TODO not sure if some of these cases are actually possible. Will get performance benefit if we remove impossible cases.
+    } else if (REG_is_xmm(reg_src) || REG_is_ymm(reg_src)) { // TODO: Something similar might be needed for other instructions and operand sizes (e.g., YMM, GR64, GR32, etc.?)
+    // Prevents incorrect tainting when dst reg size does not match XMM size
+      switch (INS_MemoryOperandSize(ins, 0)) { // TODO: not sure if some of these cases are actually possible. Will get performance benefit if we remove impossible cases.
         case 2:
           R2M_CALL(r2m_xfer_opw, reg_src);
           break;
@@ -499,9 +415,6 @@ void ins_xfer_op_predicated(INS ins) {
   if (INS_MemoryOperandCount(ins) == 0) {
     reg_dst = INS_OperandReg(ins, OP_0);
     reg_src = INS_OperandReg(ins, OP_1);
-
-    insert_r2_bruh(ins, reg_src);
-
     if (REG_is_gr64(reg_dst)) {
       R2R_CALL_P(r2r_xfer_opq, reg_dst, reg_src);
     } else if (REG_is_gr32(reg_dst)) {
@@ -511,9 +424,6 @@ void ins_xfer_op_predicated(INS ins) {
     }
   } else {
     reg_dst = INS_OperandReg(ins, OP_0);
-
-    insert_m2_bruh(ins);
-
     if (REG_is_gr64(reg_dst)) {
       M2R_CALL_P(m2r_xfer_opq, reg_dst);
     } else if (REG_is_gr32(reg_dst)) {
@@ -528,9 +438,6 @@ void ins_push_op(INS ins) {
   REG reg_src;
   if (INS_OperandIsReg(ins, OP_0)) {
     reg_src = INS_OperandReg(ins, OP_0);
-
-    insert_r2_bruh(ins, reg_src);
-
     if (REG_is_gr64(reg_src)) {
       R2M_CALL(r2m_xfer_opq, reg_src);
     } else if (REG_is_gr32(reg_src)) {
@@ -539,9 +446,6 @@ void ins_push_op(INS ins) {
       R2M_CALL(r2m_xfer_opw, reg_src);
     }
   } else if (INS_OperandIsMemory(ins, OP_0)) {
-
-    insert_m2_bruh(ins);
-
     if (INS_MemoryWriteSize(ins) == BIT2BYTE(MEM_64BIT_LEN)) {
       M2M_CALL(m2m_xfer_opq);
     } else if (INS_MemoryWriteSize(ins) == BIT2BYTE(MEM_LONG_LEN)) {
@@ -559,9 +463,6 @@ void ins_pop_op(INS ins) {
   REG reg_dst;
   if (INS_OperandIsReg(ins, OP_0)) {
     reg_dst = INS_OperandReg(ins, OP_0);
-
-    insert_m2_bruh(ins);
-
     if (REG_is_gr64(reg_dst)) {
       M2R_CALL(m2r_xfer_opq, reg_dst);
     } else if (REG_is_gr32(reg_dst)) {
@@ -570,9 +471,6 @@ void ins_pop_op(INS ins) {
       M2R_CALL(m2r_xfer_opw, reg_dst);
     }
   } else if (INS_OperandIsMemory(ins, OP_0)) {
-
-    insert_m2_bruh(ins);
-
     if (INS_MemoryWriteSize(ins) == BIT2BYTE(MEM_64BIT_LEN)) {
       M2M_CALL(m2m_xfer_opq);
     } else if (INS_MemoryWriteSize(ins) == BIT2BYTE(MEM_LONG_LEN)) {
@@ -597,9 +495,6 @@ void ins_stosb(INS ins) {
   if (INS_RepPrefix(ins)) {
     ins_stos_ins(ins, (AFUNPTR)r2m_xfer_opbn);
   } else {
-
-    insert_r2_bruh(ins, REG_AL);
-
     R2M_CALL(r2m_xfer_opb_l, REG_AL);
   }
 }
@@ -608,9 +503,6 @@ void ins_stosw(INS ins) {
   if (INS_RepPrefix(ins)) {
     ins_stos_ins(ins, (AFUNPTR)r2m_xfer_opwn);
   } else {
-
-    insert_r2_bruh(ins, REG_AX);
-
     R2M_CALL(r2m_xfer_opw, REG_AX);
   }
 }
@@ -619,9 +511,6 @@ void ins_stosd(INS ins) {
   if (INS_RepPrefix(ins)) {
     ins_stos_ins(ins, (AFUNPTR)r2m_xfer_opln);
   } else {
-
-    insert_r2_bruh(ins, REG_EAX);
-
     R2M_CALL(r2m_xfer_opw, REG_EAX);
   }
 }
@@ -630,9 +519,6 @@ void ins_stosq(INS ins) {
   if (INS_RepPrefix(ins)) {
     ins_stos_ins(ins, (AFUNPTR)r2m_xfer_opqn);
   } else {
-
-    insert_r2_bruh(ins, REG_RAX);
-
     R2M_CALL(r2m_xfer_opw, REG_RAX);
   }
 }
@@ -640,15 +526,9 @@ void ins_stosq(INS ins) {
 void ins_movlp(INS ins) {
   if (INS_OperandIsMemory(ins, OP_0)) {
     REG reg_src = INS_OperandReg(ins, OP_1);
-
-    insert_r2_bruh(ins, reg_src);
-
     R2M_CALL(r2m_xfer_opq, reg_src);
   } else {
     REG reg_dst = INS_OperandReg(ins, OP_0);
-
-    insert_m2_bruh(ins);
-
     M2R_CALL(m2r_xfer_opq, reg_dst);
   }
 }
@@ -656,20 +536,14 @@ void ins_movlp(INS ins) {
 void ins_movhp(INS ins) {
   if (INS_OperandIsMemory(ins, OP_0)) {
     REG reg_src = INS_OperandReg(ins, OP_1);
-
-    insert_r2_bruh(ins, reg_src);
-
     R2M_CALL(r2m_xfer_opq_h, reg_src);
   } else {
     REG reg_dst = INS_OperandReg(ins, OP_0);
-
-    insert_m2_bruh(ins);
-
     M2R_CALL(m2r_xfer_opq_h, reg_dst);
   }
 }
 
-void ins_movlhp(INS ins) { //UAVUZZ TODO check if correct
+void ins_movlhp(INS ins) { // TODO check if correct
   if (INS_OperandIsMemory(ins, OP_0) || INS_OperandIsMemory(ins, OP_1)) {
     puts("ins_movlhp illegal / unimplemented");
     abort();
@@ -681,18 +555,18 @@ void ins_movlhp(INS ins) { //UAVUZZ TODO check if correct
   R2R_CALL(r2r_xfer_opx_lq_to_hq, reg_dst, reg_src);
 }
 
-void ins_punpcklqdq(INS ins) { //UAVUZZ TODO check if correct
+void ins_punpcklqdq(INS ins) { // TODO check if correct
   if (INS_OperandIsMemory(ins, OP_0)) {
-    puts("ins_movlhp illegal / unimplemented");
+    puts("ins_punpcklqdq illegal / unimplemented");
     abort();
   }
 
   REG reg_dst = INS_OperandReg(ins, OP_0);
 
   if (INS_OperandIsMemory(ins, OP_1)) {
-    M2R_CALL(m2r_xfer_opx_lq_to_hq, reg_dst);
+    M2R_CALL(m2r_xfer_opq_h, reg_dst);
   } else {
-    REG reg_src = INS_OperandReg(ins, OP_1); //We are assuming this only takes xmm regs
+    REG reg_src = INS_OperandReg(ins, OP_1); // We are assuming this only takes xmm regs
 
     R2R_CALL(r2r_xfer_opx_lq_to_hq, reg_dst, reg_src);
   }
@@ -726,8 +600,6 @@ void ins_lea(INS ins) {
     ins_clear_op(ins);
   }
   if (reg_base != REG_INVALID() && reg_indx == REG_INVALID()) {
-    insert_r2_bruh(ins, reg_base);
-
     if (REG_is_gr64(reg_dst)) {
       R2R_CALL(r2r_xfer_opq, reg_dst, reg_base);
     } else if (REG_is_gr32(reg_dst)) {
@@ -737,8 +609,6 @@ void ins_lea(INS ins) {
     }
   }
   if (reg_base == REG_INVALID() && reg_indx != REG_INVALID()) {
-    insert_r2_bruh(ins, reg_indx);
-
     if (REG_is_gr64(reg_dst)) {
       R2R_CALL(r2r_xfer_opq, reg_dst, reg_indx);
     } else if (REG_is_gr32(reg_dst)) {
@@ -748,10 +618,6 @@ void ins_lea(INS ins) {
     }
   }
   if (reg_base != REG_INVALID() && reg_indx != REG_INVALID()) {
-
-    insert_r2_bruh(ins, reg_base);
-    insert_r2_bruh(ins, reg_indx);
-
     if (REG_is_gr64(reg_dst)) {
       RR2R_CALL(_lea_opq, reg_dst, reg_base, reg_indx);
     } else if (REG_is_gr32(reg_dst)) {
@@ -804,9 +670,6 @@ void PIN_FAST_ANALYSIS_CALL r2m_xfer_opq_rev(THREADID tid, ADDRINT dst,
 void ins_movbe_op(INS ins) {
   if (INS_OperandIsMemory(ins, OP_1)) {
     REG reg_dst = INS_OperandReg(ins, OP_0);
-
-    insert_m2_bruh(ins);
-
     if (REG_is_gr64(reg_dst)) {
       M2R_CALL(m2r_xfer_opq_rev, reg_dst);
     } else if (REG_is_gr32(reg_dst)) {
@@ -816,9 +679,6 @@ void ins_movbe_op(INS ins) {
     }
   } else {
     REG reg_src = INS_OperandReg(ins, OP_1);
-
-    insert_r2_bruh(ins, reg_src);
-
     if (REG_is_gr64(reg_src)) {
       R2M_CALL(r2m_xfer_opq_rev, reg_src);
     } else if (REG_is_gr32(reg_src)) {

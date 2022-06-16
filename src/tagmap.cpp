@@ -185,21 +185,11 @@ inline tag_t const *tag_dir_getb_as_ptr(tag_dir_t const &dir, ADDRINT addr) {
 
 // PIN_FAST_ANALYSIS_CALL
 void tagmap_setb(ADDRINT addr, tag_t const &tag) {
-  #ifdef DUMP_TAGMAP_SETB_ID
-  if (tag_to_id(tag) == DUMP_TAGMAP_SETB_ID) {
-    printf("[TAGMAP_SETB %d] addr: %p\n", tag_to_id(tag), (void *)addr);
-  }
-  #endif
   tag_dir_setb(tag_dir, addr, tag);
 }
 
 void tagmap_setb_reg(THREADID tid, unsigned int reg_idx, unsigned int off,
                      tag_t const &tag) {
-  #ifdef DUMP_TAGMAP_SETB_ID
-  if (tag_to_id(tag) == DUMP_TAGMAP_SETB_ID) {
-    printf("[TAGMAP_SETB_REG %d] reg: %d\n", tag_to_id(tag), reg_idx);
-  }
-  #endif
   threads_ctx[tid].vcpu.gpr[reg_idx][off] = tag;
 }
 
