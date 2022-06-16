@@ -204,6 +204,11 @@ void PIN_FAST_ANALYSIS_CALL r2m_xfer_opq_h(THREADID tid, ADDRINT dst,
     tagmap_setb(dst + i, src_tags[i + 8]);
 }
 
+void PIN_FAST_ANALYSIS_CALL r2r_xfer_opx_lq_to_hq(THREADID tid, uint32_t dst, uint32_t src) {
+  for (size_t i = 0; i < 8; i++)
+    RTAG[dst][i + 8] = RTAG[src][i];
+}
+
 static void PIN_FAST_ANALYSIS_CALL r2m_xfer_opbn(THREADID tid, ADDRINT dst,
                                                  ADDRINT count,
                                                  ADDRINT eflags) {
@@ -335,7 +340,22 @@ void ins_xfer_op(INS ins) {
       M2R_CALL(m2r_xfer_opl, reg_dst);
     } else if (REG_is_gr16(reg_dst)) {
       M2R_CALL(m2r_xfer_opw, reg_dst);
-    } else if (REG_is_xmm(reg_dst)) {
+    } else if (REG_is_xmm(reg_dst)) { // TODO: Something similar might be needed for other instructions and operand sizes (e.g., YMM, GR64, GR32, etc.?)
+      // Prevents incorrect tainting when src reg size does not match XMM size
+      switch (INS_MemoryOperandSize(ins, 0)) { // TODO: Its the first memory operand but not the first operand in general?? Is this correct?
+        case 4:
+          M2R_CALL(m2r_xfer_opl, reg_dst);
+          break;
+        case 8:
+          M2R_CALL(m2r_xfer_opq, reg_dst);
+          break;
+        case 16:
+          M2R_CALL(m2r_xfer_opx, reg_dst);
+          break;
+        default:
+          LOG_ERR("unsupported | %s | src memory operand size: %ld\n", INS_Disassemble(ins).c_str(), INS_MemoryOperandSize(ins, 0));
+          abort();
+      }
       M2R_CALL(m2r_xfer_opx, reg_dst);
     } else if (REG_is_ymm(reg_dst)) {
       M2R_CALL(m2r_xfer_opy, reg_dst);
@@ -354,8 +374,30 @@ void ins_xfer_op(INS ins) {
       R2M_CALL(r2m_xfer_opl, reg_src);
     } else if (REG_is_gr16(reg_src)) {
       R2M_CALL(r2m_xfer_opw, reg_src);
-    } else if (REG_is_xmm(reg_src)) {
-      R2M_CALL(r2m_xfer_opx, reg_src);
+    } else if (REG_is_xmm(reg_src) || REG_is_ymm(reg_src)) { // TODO: Something similar might be needed for other instructions and operand sizes (e.g., YMM, GR64, GR32, etc.?)
+    // Prevents incorrect tainting when dst reg size does not match XMM size
+      switch (INS_MemoryOperandSize(ins, 0)) { // TODO: not sure if some of these cases are actually possible. Will get performance benefit if we remove impossible cases.
+        case 2:
+          R2M_CALL(r2m_xfer_opw, reg_src);
+          break;
+        case 4:
+          R2M_CALL(r2m_xfer_opl, reg_src);
+          break;
+        case 8:
+          R2M_CALL(r2m_xfer_opq, reg_src);
+          break;
+        case 16:
+          R2M_CALL(r2m_xfer_opx, reg_src);
+          break;
+        case 32:
+          R2M_CALL(r2m_xfer_opy, reg_src);
+          break;
+        default:
+          puts("unsupported");
+          abort();
+          break;
+
+      }
     } else if (REG_is_ymm(reg_src)) {
       R2M_CALL(r2m_xfer_opy, reg_src);
     } else if (REG_is_mm(reg_src)) {
@@ -498,6 +540,55 @@ void ins_movhp(INS ins) {
   } else {
     REG reg_dst = INS_OperandReg(ins, OP_0);
     M2R_CALL(m2r_xfer_opq_h, reg_dst);
+  }
+}
+
+void ins_movlhp(INS ins) { // TODO check if correct
+  if (INS_OperandIsMemory(ins, OP_0) || INS_OperandIsMemory(ins, OP_1)) {
+    puts("ins_movlhp illegal / unimplemented");
+    abort();
+  }
+
+  REG reg_dst = INS_OperandReg(ins, OP_0);
+  REG reg_src = INS_OperandReg(ins, OP_1);
+
+  R2R_CALL(r2r_xfer_opx_lq_to_hq, reg_dst, reg_src);
+}
+
+void ins_punpcklqdq(INS ins) { // TODO check if correct
+  if (INS_OperandIsMemory(ins, OP_0)) {
+    puts("ins_punpcklqdq illegal / unimplemented");
+    abort();
+  }
+
+  REG reg_dst = INS_OperandReg(ins, OP_0);
+
+  if (INS_OperandIsMemory(ins, OP_1)) {
+    M2R_CALL(m2r_xfer_opq_h, reg_dst);
+  } else {
+    REG reg_src = INS_OperandReg(ins, OP_1); // We are assuming this only takes xmm regs
+
+    R2R_CALL(r2r_xfer_opx_lq_to_hq, reg_dst, reg_src);
+  }
+}
+
+void ins_vmovsd_op(INS ins) {
+  if (INS_OperandCount(ins) != 2) {
+    puts("ins_vmovsd_op ternary unimplemented");
+    abort();
+  }
+
+  if (INS_OperandIsMemory(ins, OP_0)) {
+    REG reg_src = INS_OperandReg(ins, OP_1);
+
+    M2R_CALL(r2m_xfer_opq, reg_src);
+  } else if (INS_OperandIsMemory(ins, OP_1)) {
+    REG reg_dst = INS_OperandReg(ins, OP_0);
+
+    M2R_CALL(m2r_xfer_opq, reg_dst);
+  } else {
+    puts("ins_vmovsd_op unexpected format");
+    abort();
   }
 }
 

@@ -135,6 +135,56 @@ void ins_cmp_op(INS ins) {
 
 VOID dasm(char *s) { LOG_DBG("[ins] %s\n", s); }
 
+static void PIN_FAST_ANALYSIS_CALL r_unins_istaint(THREADID tid, CONTEXT *ctx, void *rip, char *s, REG reg, uint32_t width) {
+  uint32_t dft_reg = REG_INDX(reg);
+
+  for (uint32_t i = 0 ; i < width ; i++) {
+    if (!tag_is_empty(RTAG[dft_reg][i])) {
+      UINT8 reg_content[width];
+
+      PIN_GetContextRegval(ctx, reg, reg_content);
+
+      LOG_DBG("[TAINTED uninstrumented @ %p] %s | RTAG[%d][%d] tainted with id: %d | reg content = ", rip, s, dft_reg, i, tag_to_id(tagmap_getb_reg(tid, dft_reg, i)));
+      for (int j = width - 1 ; j >= 0 ; j--) {
+        LOG_DBG("%02x", (unsigned char)reg_content[j]);
+      }
+      LOG_DBG("\n");
+    }
+  }
+}
+
+static void PIN_FAST_ANALYSIS_CALL m_unins_istaint(THREADID tid, void *rip, char *s, ADDRINT mem, uint32_t width) {
+  for (uint32_t i = 0 ; i < width ; i++) {
+    if (!tag_is_empty(MTAG(mem + i))) {
+      LOG_DBG("[TAINTED uninstrumented @ %p] %s | MTAG(%p + %d) tainted with id: %d\n", rip, s, (void *)mem, i, tag_to_id(tagmap_getb(mem + i)));
+    }
+  }
+}
+
+void ins_uninstrumented(INS ins) { //For uninstrumented instructions check if they operate on tainted data
+  uint32_t n = INS_OperandCount(ins);
+
+  char *cstr;
+  cstr = new char[INS_Disassemble(ins).size() + 1];
+  strcpy(cstr, INS_Disassemble(ins).c_str());
+
+  for (uint32_t i = 0 ; i < n ; i++) {
+    if (INS_OperandIsReg(ins, i)) {
+      REG reg = INS_OperandReg(ins, i);
+      uint32_t reg_width = INS_OperandWidth(ins, i) / 8;
+
+      INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)r_unins_istaint, IARG_FAST_ANALYSIS_CALL, IARG_THREAD_ID, IARG_CONTEXT, IARG_INST_PTR, IARG_PTR, cstr, IARG_UINT32, reg, IARG_UINT32, reg_width, IARG_END);
+    }
+  }
+
+  if (INS_IsMemoryRead(ins)) {
+    INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)m_unins_istaint, IARG_FAST_ANALYSIS_CALL, IARG_THREAD_ID, IARG_INST_PTR, IARG_PTR, cstr, IARG_MEMORYREAD_EA, IARG_MEMORYREAD_SIZE, IARG_END);
+  } else if (INS_IsMemoryWrite(ins)) {
+    INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)m_unins_istaint, IARG_FAST_ANALYSIS_CALL, IARG_THREAD_ID, IARG_INST_PTR, IARG_PTR, cstr, IARG_MEMORYWRITE_EA, IARG_MEMORYWRITE_SIZE, IARG_END);
+  }
+
+}
+
 /*
  * instruction inspection (instrumentation function)
  *
@@ -432,7 +482,11 @@ void ins_inspect(INS ins) {
   case XED_ICLASS_PCMPEQB:
     ins_binary_op(ins);
     break;
-    // TODO
+  case XED_ICLASS_CALL_FAR:
+  case XED_ICLASS_CALL_NEAR:
+    M_CLEAR_N(8);
+    break;
+  // TODO
   case XED_ICLASS_XGETBV:
   case XED_ICLASS_PMOVMSKB:
   case XED_ICLASS_VPMOVMSKB:
@@ -444,8 +498,51 @@ void ins_inspect(INS ins) {
   case XED_ICLASS_PSRLDQ:
   case XED_ICLASS_VPCMPEQB:
   case XED_ICLASS_VPBROADCASTB:
-  case XED_ICLASS_VZEROUPPER:
   case XED_ICLASS_BSWAP:
+  case XED_ICLASS_VXORPS:
+  case XED_ICLASS_ORPS:
+  case XED_ICLASS_UNPCKLPS:
+  case XED_ICLASS_SHUFPD:
+  case XED_ICLASS_ANDPS:
+  case XED_ICLASS_ANDNPS:
+  case XED_ICLASS_ANDPD:
+  case XED_ICLASS_MINSS:
+  case XED_ICLASS_MAXSS:
+  case XED_ICLASS_MULSS:
+  case XED_ICLASS_DIVSS:
+  case XED_ICLASS_CVTTSS2SI:
+  case XED_ICLASS_CVTTSD2SI:
+  case XED_ICLASS_CVTTPS2DQ:
+  case XED_ICLASS_CVTSI2SS:
+  case XED_ICLASS_CVTSS2SD:
+  case XED_ICLASS_CVTDQ2PS:
+  case XED_ICLASS_VCVTSI2SD:
+  case XED_ICLASS_PEXTRW:
+  case XED_ICLASS_SHUFPS:
+  case XED_ICLASS_SUBSS:
+  case XED_ICLASS_VFMADD213SD:
+  case XED_ICLASS_VFMADD132SD:
+    ins_uninstrumented(ins);
+    break;
+  case XED_ICLASS_PUNPCKLQDQ:
+    ins_punpcklqdq(ins);
+    break;
+  case XED_ICLASS_MOVLHPS:
+    ins_movlhp(ins);
+    break;
+  case XED_ICLASS_VZEROUPPER:
+    ins_vzeroupper_op(ins);
+    break;
+  case XED_ICLASS_PADDQ:
+    ins_binary_op(ins);
+    break;
+  case XED_ICLASS_ROUNDSS:
+  case XED_ICLASS_ROUNDSD:
+    ins_xfer_op(ins);
+    break;
+  case XED_ICLASS_VMOVSD:
+    ins_vmovsd_op(ins);
+    break;
   case XED_ICLASS_UNPCKLPD:
   case XED_ICLASS_PSHUFB:
   case XED_ICLASS_VPTEST:
@@ -465,7 +562,7 @@ void ins_inspect(INS ins) {
   case XED_ICLASS_VPCMPGTB:
   case XED_ICLASS_VPALIGNR:
   case XED_ICLASS_VPCMPISTRI:
-
+    ins_uninstrumented(ins);
     break;
   case XED_ICLASS_CMP:
     // ins_cmp_op(ins);
@@ -499,8 +596,6 @@ void ins_inspect(INS ins) {
   case XED_ICLASS_JNP:
   case XED_ICLASS_RET_FAR:
   case XED_ICLASS_RET_NEAR:
-  case XED_ICLASS_CALL_FAR:
-  case XED_ICLASS_CALL_NEAR:
   case XED_ICLASS_LEAVE:
   case XED_ICLASS_SYSCALL:
   case XED_ICLASS_TEST:
@@ -530,8 +625,9 @@ void ins_inspect(INS ins) {
     // INT32 num_op = INS_OperandCount(ins);
     // INT32 ins_ext = INS_Extension(ins);
     // if (ins_ext != 0 && ins_ext != 10)
-    LOG_DBG("[uninstrumented] opcode=%d, %s\n", ins_indx,
+    LOG_DBG("[uninstrumented @ %p] opcode=%d, %s\n", (void *)INS_Address(ins), ins_indx,
          INS_Disassemble(ins).c_str());
+    ins_uninstrumented(ins);
     break;
   }
 }
