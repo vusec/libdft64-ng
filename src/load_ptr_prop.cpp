@@ -104,7 +104,7 @@ void instrument_load_ptr_prop(TRACE trace, VOID *v) {
       // FIXME: This keep some stack ops e.g., 'ret'
       // FIXME: Why does the mem operand have to be 8 bytes...? What about e.g., a 'mov edx, dword ptr [rbx]'.
 
-      std::string ins_filename; INT32 ins_line, ins_col; PIN_GetSourceLocation(INS_Address(ins), &ins_col, &ins_line, &ins_filename);
+      //std::string ins_filename; INT32 ins_line, ins_col; PIN_GetSourceLocation(INS_Address(ins), &ins_col, &ins_line, &ins_filename);
       //if (ins_filename.empty() || ins_filename.find("apps/tests") == std::string::npos || ins_line != 25) continue; // TODO: REMOVE!!!
       //LOG_OUT("ins with 1 memory read operand: addr = %p, base_reg = %u, indx_reg = %u, ins = '%s', loc = %s:%d:%d\n",
       //          (void *) INS_Address(ins), base_reg, indx_reg, INS_Disassemble(ins).c_str(),
