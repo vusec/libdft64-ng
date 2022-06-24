@@ -16,7 +16,6 @@ void test_mov_32bit_extend(uint64_t tainted) {
   asm(	NOPS
 	"mov %[atainted], %%rdi;"	// rdi = should be tainted
 	"mov $0, %%edi;" 		// rdi = should be untainted
-	"mov %%rdi, %%rdi;"
 	"call __libdft_getval_taint;"
 	NOPS
 	: : [atainted] "r" (tainted) : "rdi");
