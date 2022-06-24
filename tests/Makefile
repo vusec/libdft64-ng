@@ -4,11 +4,9 @@ LDFLAGS=-z max-page-size=0x1000
 OBJDIR=obj-intel64
 
 PROGRAMS=memtaint
+PROGRAMS+=ins
 
 BINARIES=$(addprefix $(OBJDIR)/,$(PROGRAMS))
-
-BIN_PREP_memtaint=../utils/relink.py $(OBJDIR)/memtaint
-PIN_EXEC_memtaint=setarch x86_64 -R
 
 all: $(BINARIES)
 
@@ -19,11 +17,11 @@ $(OBJDIR):
 
 %.run: $(OBJDIR)/%
 	@echo - Running test $(basename $@)...
-	$(PIN_EXEC_$(basename $@)) $(PIN_ROOT)/pin -t ../tools/obj-intel64/track.so -- $<
+	setarch x86_64 -R $(PIN_ROOT)/pin -t ../tools/obj-intel64/track.so -- $<
 
 $(BINARIES): %: $(OBJDIR) %.o
 	$(CC) $(LDFLAGS) -o $@ $@.o
-	$(BIN_PREP_$(@F))
+	../utils/relink.py $@
 
 $(OBJDIR)/%.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
