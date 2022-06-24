@@ -1,6 +1,8 @@
 #include "ins_xfer_op.h"
 #include "ins_clear_op.h"
 #include "ins_helper.h"
+#include "ins_movsx_op.h"
+#include "libdft_core.h"
 
 /* threads context */
 extern thread_ctx_t *threads_ctx;
@@ -312,7 +314,7 @@ void ins_xfer_op(INS ins) {
     if (REG_is_gr64(reg_dst)) {
       R2R_CALL(r2r_xfer_opq, reg_dst, reg_src);
     } else if (REG_is_gr32(reg_dst)) {
-      R2R_CALL(r2r_xfer_opl, reg_dst, reg_src);
+      R2R_CALL(_movsx_r2r_opql, reg_dst, reg_src); // Sign extend 32-bit operand to 64-bit
     } else if (REG_is_gr16(reg_dst)) {
       R2R_CALL(r2r_xfer_opw, reg_dst, reg_src);
     } else if (REG_is_xmm(reg_dst)) {
@@ -337,14 +339,14 @@ void ins_xfer_op(INS ins) {
     if (REG_is_gr64(reg_dst)) {
       M2R_CALL(m2r_xfer_opq, reg_dst);
     } else if (REG_is_gr32(reg_dst)) {
-      M2R_CALL(m2r_xfer_opl, reg_dst);
+      M2R_CALL(_movsx_m2r_opql, reg_dst); // Sign extend 32-bit operand to 64-bit
     } else if (REG_is_gr16(reg_dst)) {
       M2R_CALL(m2r_xfer_opw, reg_dst);
     } else if (REG_is_xmm(reg_dst)) { // TODO: Something similar might be needed for other instructions and operand sizes (e.g., YMM, GR64, GR32, etc.?)
       // Prevents incorrect tainting when src reg size does not match XMM size
       switch (INS_MemoryOperandSize(ins, 0)) { // TODO: Its the first memory operand but not the first operand in general?? Is this correct?
         case 4:
-          M2R_CALL(m2r_xfer_opl, reg_dst);
+          M2R_CALL(_movsx_m2r_opql, reg_dst); // Sign extend 32-bit operand to 64-bit
           break;
         case 8:
           M2R_CALL(m2r_xfer_opq, reg_dst);
@@ -371,7 +373,7 @@ void ins_xfer_op(INS ins) {
     if (REG_is_gr64(reg_src)) {
       R2M_CALL(r2m_xfer_opq, reg_src);
     } else if (REG_is_gr32(reg_src)) {
-      R2M_CALL(r2m_xfer_opl, reg_src);
+      R2M_CALL(r2m_xfer_opl, reg_src); // TODO: Sign extend 32-bit operand to 64-bit?
     } else if (REG_is_gr16(reg_src)) {
       R2M_CALL(r2m_xfer_opw, reg_src);
     } else if (REG_is_xmm(reg_src) || REG_is_ymm(reg_src)) { // TODO: Something similar might be needed for other instructions and operand sizes (e.g., YMM, GR64, GR32, etc.?)
@@ -381,7 +383,7 @@ void ins_xfer_op(INS ins) {
           R2M_CALL(r2m_xfer_opw, reg_src);
           break;
         case 4:
-          R2M_CALL(r2m_xfer_opl, reg_src);
+          R2M_CALL(r2m_xfer_opl, reg_src); // TODO: Sign extend 32-bit operand to 64-bit?
           break;
         case 8:
           R2M_CALL(r2m_xfer_opq, reg_src);
@@ -393,8 +395,7 @@ void ins_xfer_op(INS ins) {
           R2M_CALL(r2m_xfer_opy, reg_src);
           break;
         default:
-          puts("unsupported");
-          abort();
+          ins_uninstrumented(ins);
           break;
 
       }
@@ -418,7 +419,7 @@ void ins_xfer_op_predicated(INS ins) {
     if (REG_is_gr64(reg_dst)) {
       R2R_CALL_P(r2r_xfer_opq, reg_dst, reg_src);
     } else if (REG_is_gr32(reg_dst)) {
-      R2R_CALL_P(r2r_xfer_opl, reg_dst, reg_src);
+      R2R_CALL_P(_movsx_r2r_opql, reg_dst, reg_src); // Sign extend 32-bit operand to 64-bit
     } else {
       R2R_CALL_P(r2r_xfer_opw, reg_dst, reg_src);
     }
@@ -427,7 +428,7 @@ void ins_xfer_op_predicated(INS ins) {
     if (REG_is_gr64(reg_dst)) {
       M2R_CALL_P(m2r_xfer_opq, reg_dst);
     } else if (REG_is_gr32(reg_dst)) {
-      M2R_CALL_P(m2r_xfer_opl, reg_dst);
+      M2R_CALL_P(_movsx_m2r_opql, reg_dst); // Sign extend 32-bit operand to 64-bit
     } else {
       M2R_CALL_P(m2r_xfer_opw, reg_dst);
     }
@@ -441,7 +442,7 @@ void ins_push_op(INS ins) {
     if (REG_is_gr64(reg_src)) {
       R2M_CALL(r2m_xfer_opq, reg_src);
     } else if (REG_is_gr32(reg_src)) {
-      R2M_CALL(r2m_xfer_opl, reg_src);
+      R2M_CALL(r2m_xfer_opl, reg_src); // TODO: Sign extend 32-bit operand to 64-bit?
     } else {
       R2M_CALL(r2m_xfer_opw, reg_src);
     }
@@ -449,7 +450,7 @@ void ins_push_op(INS ins) {
     if (INS_MemoryWriteSize(ins) == BIT2BYTE(MEM_64BIT_LEN)) {
       M2M_CALL(m2m_xfer_opq);
     } else if (INS_MemoryWriteSize(ins) == BIT2BYTE(MEM_LONG_LEN)) {
-      M2M_CALL(m2m_xfer_opl);
+      M2M_CALL(m2m_xfer_opl); // TODO: Sign extend 32-bit operand to 64-bit?
     } else {
       M2M_CALL(m2m_xfer_opw);
     }
@@ -466,7 +467,7 @@ void ins_pop_op(INS ins) {
     if (REG_is_gr64(reg_dst)) {
       M2R_CALL(m2r_xfer_opq, reg_dst);
     } else if (REG_is_gr32(reg_dst)) {
-      M2R_CALL(m2r_xfer_opl, reg_dst);
+      M2R_CALL(_movsx_m2r_opql, reg_dst); // Sign extend 32-bit operand to 64-bit
     } else {
       M2R_CALL(m2r_xfer_opw, reg_dst);
     }
@@ -474,7 +475,7 @@ void ins_pop_op(INS ins) {
     if (INS_MemoryWriteSize(ins) == BIT2BYTE(MEM_64BIT_LEN)) {
       M2M_CALL(m2m_xfer_opq);
     } else if (INS_MemoryWriteSize(ins) == BIT2BYTE(MEM_LONG_LEN)) {
-      M2M_CALL(m2m_xfer_opl);
+      M2M_CALL(m2m_xfer_opl); // TODO: Sign extend 32-bit operand to 64-bit?
     } else {
       M2M_CALL(m2m_xfer_opw);
     }
@@ -509,7 +510,7 @@ void ins_stosw(INS ins) {
 
 void ins_stosd(INS ins) {
   if (INS_RepPrefix(ins)) {
-    ins_stos_ins(ins, (AFUNPTR)r2m_xfer_opln);
+    ins_stos_ins(ins, (AFUNPTR)r2m_xfer_opln); // TODO: Sign extend 32-bit operand to 64-bit?
   } else {
     R2M_CALL(r2m_xfer_opw, REG_EAX);
   }
@@ -603,7 +604,7 @@ void ins_lea(INS ins) {
     if (REG_is_gr64(reg_dst)) {
       R2R_CALL(r2r_xfer_opq, reg_dst, reg_base);
     } else if (REG_is_gr32(reg_dst)) {
-      R2R_CALL(r2r_xfer_opl, reg_dst, reg_base);
+      R2R_CALL(r2r_xfer_opl, reg_dst, reg_base); // TODO: Sign extend 32-bit operand to 64-bit?
     } else if (REG_is_gr16(reg_dst)) {
       R2R_CALL(r2r_xfer_opw, reg_dst, reg_base);
     }
@@ -612,7 +613,7 @@ void ins_lea(INS ins) {
     if (REG_is_gr64(reg_dst)) {
       R2R_CALL(r2r_xfer_opq, reg_dst, reg_indx);
     } else if (REG_is_gr32(reg_dst)) {
-      R2R_CALL(r2r_xfer_opl, reg_dst, reg_indx);
+      R2R_CALL(r2r_xfer_opl, reg_dst, reg_indx); // TODO: Sign extend 32-bit operand to 64-bit?
     } else if (REG_is_gr16(reg_dst)) {
       R2R_CALL(r2r_xfer_opw, reg_dst, reg_indx);
     }
@@ -634,6 +635,7 @@ void PIN_FAST_ANALYSIS_CALL m2r_xfer_opw_rev(THREADID tid, uint32_t dst,
     RTAG[dst][i] = MTAG(src + (1 - i));
 }
 
+// TODO: Sign extend 32-bit operand to 64-bit?
 void PIN_FAST_ANALYSIS_CALL m2r_xfer_opl_rev(THREADID tid, uint32_t dst,
                                              ADDRINT src) {
   for (size_t i = 0; i < 4; i++)
@@ -653,6 +655,7 @@ void PIN_FAST_ANALYSIS_CALL r2m_xfer_opw_rev(THREADID tid, ADDRINT dst,
   tagmap_setb(dst + 1, src_tags[0]);
 }
 
+// TODO: Sign extend 32-bit operand to 64-bit?
 void PIN_FAST_ANALYSIS_CALL r2m_xfer_opl_rev(THREADID tid, ADDRINT dst,
                                              uint32_t src) {
   tag_t *src_tags = RTAG[src];
@@ -673,7 +676,7 @@ void ins_movbe_op(INS ins) {
     if (REG_is_gr64(reg_dst)) {
       M2R_CALL(m2r_xfer_opq_rev, reg_dst);
     } else if (REG_is_gr32(reg_dst)) {
-      M2R_CALL(m2r_xfer_opl_rev, reg_dst);
+      M2R_CALL(m2r_xfer_opl_rev, reg_dst); // TODO: Sign extend 32-bit operand to 64-bit?
     } else if (REG_is_gr16(reg_dst)) {
       M2R_CALL(m2r_xfer_opw_rev, reg_dst);
     }
@@ -682,7 +685,7 @@ void ins_movbe_op(INS ins) {
     if (REG_is_gr64(reg_src)) {
       R2M_CALL(r2m_xfer_opq_rev, reg_src);
     } else if (REG_is_gr32(reg_src)) {
-      R2M_CALL(r2m_xfer_opl_rev, reg_src);
+      R2M_CALL(r2m_xfer_opl_rev, reg_src); // TODO: Sign extend 32-bit operand to 64-bit?
     } else if (REG_is_gr16(reg_src)) {
       R2M_CALL(r2m_xfer_opw_rev, reg_src);
     }
