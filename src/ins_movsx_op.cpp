@@ -9,11 +9,6 @@ extern thread_ctx_t *threads_ctx;
 /*
  * tag propagation (analysis function)
  *
- * propagate and extend tag between a 16-bit
- * register and an 8-bit register as t[dst] = t[upper(src)]
- *
- * NOTE: special case for MOVSX instruction
- *
  * @thread_ctx:	the thread context
  * @dst:	destination register index (VCPU)
  * @src:	source register index (VCPU)
