@@ -6,7 +6,7 @@
 // A few nops makes it easier to find the inline asm snippet
 #define NOPS "nop; nop; nop;"
 #define BANNER "================================\n"
-#define EXP "[EXPECTED] "
+#define EXP "[EXPECTED]    "
 # define barrier() __asm__ __volatile__("": : :"memory")
 
 void __attribute__((noinline)) __libdft_set_taint(void *p, unsigned int v, size_t n) { barrier(); }
@@ -14,7 +14,7 @@ void __attribute__((noinline)) __libdft_get_taint(void *p) { barrier(); }
 void __attribute__((noinline)) __libdft_getval_taint(uint64_t v) { barrier(); }
 void __attribute__((noinline)) __libdft_getvaln_taint(uint64_t v) { barrier(); }
 
-void test_mov_32bit_extend(uint64_t tainted) {
+void test_mov_32bit_extend_const(uint64_t tainted) {
   asm(	NOPS
 	"mov %[atainted], %%rdi;"	// rdi = should be tainted
 	"mov $0, %%edi;" 		// rdi = should be untainted
@@ -34,18 +34,32 @@ void test_movsx_8u_to_16(uint8_t tainted) {
 	: : [atainted] "r" (tainted) : "rdi", "rax");
 }
 
-int main(int argc, char** argv) {
-  uint64_t tainted64 = 1; __libdft_set_taint(&tainted64, 34, 8);
-  uint8_t tainted8 = 1; __libdft_set_taint(&tainted8, 34, 1);
+void test_mov_32bit_extend_reg(uint64_t tainted, uint32_t untainted) {
+  asm(	NOPS
+	"mov %[atainted], %%rdi;"	// rdi = tainted
+	"mov %[auntainted], %%edi;"	// rdi = should be completely untainted
+	"call __libdft_getval_taint;"
+	NOPS
+	: : [atainted] "r" (tainted), [auntainted] "r" (untainted) : "rdi");
+}
 
-  printf(BANNER EXP "v: 0, lbl: 0, ...\n");
-  test_mov_32bit_extend(tainted64);
+int main(int argc, char** argv) {
+  uint8_t tainted8 = 1; __libdft_set_taint(&tainted8, 34, 1);
+  uint64_t tainted32 = 1; __libdft_set_taint(&tainted32, 34, 4);
+  uint64_t tainted64 = 1; __libdft_set_taint(&tainted64, 34, 8);
 
   printf(BANNER);
-  printf(EXP "byte: 0, v: 1, lbl: 34, ...\n");
-  printf(EXP "byte: 1, v: 0, lbl: 0, ...\n");
-  printf(EXP "byte: 2, v: 0, lbl: 0, ...\n");
+  printf(EXP "v: 0, lbl: 0, ...\n");
+  test_mov_32bit_extend_const(tainted64);
+
+  printf(BANNER);
+  printf(EXP " byte: 0, v: 1, lbl: 34, ...\n");
+  printf(EXP " bytes: 1--7, v: 0, lbl: 0, ...\n");
   test_movsx_8u_to_16(tainted8);
+
+  printf(BANNER);
+  printf(EXP "v: 1234, lbl: 0, ...\n");
+  test_mov_32bit_extend_reg(tainted64, 1234);
 
   // TODO: Test e.g., "mov $0, %%di;" to make sure only the lower 2 bytes propagate taint
 
