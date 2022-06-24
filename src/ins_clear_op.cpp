@@ -70,13 +70,14 @@ static void PIN_FAST_ANALYSIS_CALL r_clry_upper_all(THREADID tid) {
 void ins_clear_op(INS ins) {
   if (INS_OperandIsMemory(ins, OP_0)) {
     INT32 n = INS_OperandWidth(ins, OP_0) / 8;
+    if (n == 4) n = 8; // Sign extend 32-bit operands to 64-bit
     M_CLEAR_N(n);
   } else {
     REG reg_dst = INS_OperandReg(ins, OP_0);
     if (REG_is_gr64(reg_dst)) {
       R_CALL(r_clrq, reg_dst);
     } else if (REG_is_gr32(reg_dst)) {
-      R_CALL(r_clrl, reg_dst);
+      R_CALL(r_clrq, reg_dst); // Sign extend 32-bit operands to 64-bit
     } else if (REG_is_gr16(reg_dst)) {
       R_CALL(r_clrw, reg_dst);
     } else if (REG_is_xmm(reg_dst)) {
