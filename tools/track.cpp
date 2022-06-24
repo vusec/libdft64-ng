@@ -18,6 +18,14 @@ VOID TestGetValHandler(THREADID tid, uint64_t v) {
          tag_sprint(t).c_str());
 }
 
+VOID TestGetValNHandler(THREADID tid, uint64_t v) {
+  for (int i = 0; i < 8; i++) {
+    tag_t t = tagmap_getb_reg(tid, X64_ARG0_REG, i);
+    printf("[PIN][GETVALN] byte: %d, v: %u, lb: %d, taint: %s\n", i, ((uint8_t*)(&v))[i], tag_to_id(t),
+          tag_sprint(t).c_str());
+  }
+}
+
 VOID TestSetHandler(void *p, unsigned int v, size_t n) {
   tag_t t = tag_alloc<tag_t>((ptroff_t) v);
   for (size_t i = 0; i < n; i++) {
@@ -55,6 +63,16 @@ VOID EntryPoint(VOID *v) {
                      IARG_THREAD_ID, IARG_FUNCARG_ENTRYPOINT_VALUE, 0,
                      IARG_END);
       RTN_Close(test_getval_rtn);
+    }
+
+    RTN test_getvaln_rtn = RTN_FindByName(img, "__libdft_getvaln_taint");
+    if (RTN_Valid(test_getvaln_rtn)) {
+      RTN_Open(test_getvaln_rtn);
+
+      RTN_InsertCall(test_getvaln_rtn, IPOINT_BEFORE, (AFUNPTR)TestGetValNHandler,
+                     IARG_THREAD_ID, IARG_FUNCARG_ENTRYPOINT_VALUE, 0,
+                     IARG_END);
+      RTN_Close(test_getvaln_rtn);
     }
   }
 }
