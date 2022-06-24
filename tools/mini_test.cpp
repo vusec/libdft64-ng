@@ -4,8 +4,8 @@
 #include "string.h"
 
 extern "C" {
-void __attribute__((noinline)) __libdft_set_taint(void *p, unsigned int v) {
-  printf("set: %p, %d\n", p, v);
+void __attribute__((noinline)) __libdft_set_taint(void *p, unsigned int v, size_t n) {
+  printf("set: %p (+%lu) %d\n", p, n, v);
 }
 
 void __attribute__((noinline)) __libdft_get_taint(void *p) {
@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
   }
 
   uint64_t m = 0;
-  __libdft_set_taint(&m, 8);
+  __libdft_set_taint(&m, 1234, 8);
   __libdft_get_taint(&m);
   __libdft_getval_taint(m);
 

@@ -18,9 +18,11 @@ VOID TestGetValHandler(THREADID tid, uint64_t v) {
          tag_sprint(t).c_str());
 }
 
-VOID TestSetHandler(void *p, unsigned int v) {
+VOID TestSetHandler(void *p, unsigned int v, size_t n) {
   tag_t t = tag_alloc<tag_t>((ptroff_t) v);
-  tagmap_setb((ADDRINT)p, t);
+  for (size_t i = 0; i < n; i++) {
+    tagmap_setb((ADDRINT)p + i, t);
+  }
   printf("[PIN][SET] addr: %p, lb: %d, taint: %d\n", p, tag_to_id(t), v);
 }
 
@@ -40,7 +42,8 @@ VOID EntryPoint(VOID *v) {
       RTN_Open(test_set_rtn);
       RTN_InsertCall(test_set_rtn, IPOINT_BEFORE, (AFUNPTR)TestSetHandler,
                      IARG_FUNCARG_ENTRYPOINT_VALUE, 0,
-                     IARG_FUNCARG_ENTRYPOINT_VALUE, 1, IARG_END);
+                     IARG_FUNCARG_ENTRYPOINT_VALUE, 1,
+                     IARG_FUNCARG_ENTRYPOINT_VALUE, 2, IARG_END);
       RTN_Close(test_set_rtn);
     }
 
