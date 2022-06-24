@@ -42,4 +42,6 @@ void ins_inspect(INS);
 /* REG INDEX API*/
 size_t REG_INDX(REG);
 
+void ins_uninstrumented(INS ins);
+
 #endif /* __LIBDFT_CORE_H__ */
