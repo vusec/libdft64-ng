@@ -3,3 +3,4 @@ obj-ia32
 obj-intel64
 angora_tools
 my_tools
+pin.log
