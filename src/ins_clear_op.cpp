@@ -34,11 +34,13 @@ static void PIN_FAST_ANALYSIS_CALL r_clrw(THREADID tid, uint32_t reg) {
   }
 }
 
+/*
 static void PIN_FAST_ANALYSIS_CALL r_clrl(THREADID tid, uint32_t reg) {
   for (size_t i = 0; i < 4; i++) {
     RTAG[reg][i] = tag_traits<tag_t>::cleared_val;
   }
 }
+*/
 
 static void PIN_FAST_ANALYSIS_CALL r_clrq(THREADID tid, uint32_t reg) {
   for (size_t i = 0; i < 8; i++) {
