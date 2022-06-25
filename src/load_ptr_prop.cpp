@@ -122,7 +122,6 @@ void instrument_load_ptr_prop(TRACE trace, VOID *v) {
       // We need to go before libdft
       INS_InsertCall(ins, IPOINT_BEFORE,
           AFUNPTR(memop_deref_before),
-          IARG_CALL_ORDER, CALL_ORDER_FIRST,
           IARG_THREAD_ID,
           IARG_MEMORYOP_EA, read_memopidx,
           IARG_UINT32, base_reg,
