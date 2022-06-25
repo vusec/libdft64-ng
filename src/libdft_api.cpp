@@ -379,12 +379,9 @@ libdft_cmd_img(IMG img, void *v)
  * initialization of the core tagging engine;
  * it must be called before using everything else
  *
- * @argc:	argc passed in main
- * @argv:	argv passed in main
- *
  * returns: 0 on success, 1 on error
  */
-int libdft_init() {
+int libdft_init(bool enable_load_ptr_prop) {
 
   // std::ios::sync_with_stdio(false);
 
@@ -400,6 +397,10 @@ int libdft_init() {
   if (unlikely(tagmap_alloc()))
     /* tagmap initialization failed */
     return 1;
+
+  /* load ptr prop hooks; should be inserted before other hooks */
+  if (enable_load_ptr_prop)
+    TRACE_AddInstrumentFunction(instrument_load_ptr_prop, NULL);
 
   /*
    * syscall hooks; store the context of every syscall
@@ -435,10 +436,6 @@ int libdft_set_log_dir(std::string path) {
   _libdft_dbg = new PinLogPerThread(path_dbg.c_str());
   _log_to_std = false; // No longer logging to stdout/stderr
   return 0;
-}
-
-void libdft_enable_load_ptr_prop(void) {
-  TRACE_AddInstrumentFunction(instrument_load_ptr_prop, NULL);
 }
 
 /*
