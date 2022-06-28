@@ -60,6 +60,7 @@ typedef struct {
  */
 typedef struct {
   int nr;                           /* syscall number */
+  tag_t nr_taint;                   /* syscall number's taint */
   ADDRINT arg[SYSCALL_ARG_NUM];     /* arguments */
   tag_t arg_taint[SYSCALL_ARG_NUM]; /* arguments' taint */
   ADDRINT ret;                      /* return value */

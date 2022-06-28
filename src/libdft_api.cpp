@@ -141,8 +141,9 @@ static void sysenter_save(THREADID tid, CONTEXT *ctx, SYSCALL_STANDARD std,
     return;
   }
 
-  /* pass the system call number to sysexit_save() */
+  /* pass the system call number and its taint to sysexit_save() */
   threads_ctx[tid].syscall_ctx.nr = syscall_nr;
+  threads_ctx[tid].syscall_ctx.nr_taint = tagmap_getn_reg(tid, DFT_REG_RAX, sizeof(ADDRINT));
 
   /* save the arguments and arguments' taint */
   memset(&threads_ctx[tid].syscall_ctx.arg[0], 0, SYSCALL_ARG_NUM*sizeof(ADDRINT));
