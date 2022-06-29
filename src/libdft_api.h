@@ -64,7 +64,7 @@ typedef struct {
   ADDRINT arg[SYSCALL_ARG_NUM];     /* arguments */
   tag_t arg_taint[SYSCALL_ARG_NUM]; /* arguments' taint */
   ADDRINT ret;                      /* return value */
-  CONTEXT *aux;                     /* auxiliary data */
+  CONTEXT *pinctx;                  /* the current CONTEXT */
   /* ADDRINT errno; */              /* error code */
 } syscall_ctx_t;
 

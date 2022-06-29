@@ -154,11 +154,8 @@ static void sysenter_save(THREADID tid, CONTEXT *ctx, SYSCALL_STANDARD std,
     threads_ctx[tid].syscall_ctx.arg_taint[i] = sysenter_get_arg_taint(tid, i);
   }
 
-  /*
-   * dump the architectural state of the processor;
-   * saved as "auxiliary" data
-   */
-  threads_ctx[tid].syscall_ctx.aux = ctx;
+  /* dump the architectural state of the processor */
+  threads_ctx[tid].syscall_ctx.pinctx = ctx;
 
   /* call the pre-syscall callback (if any); optimized branch */
   if (unlikely(syscall_desc[syscall_nr].pre != NULL))
@@ -212,11 +209,8 @@ static void sysexit_save(THREADID tid, CONTEXT *ctx, SYSCALL_STANDARD std,
     /* dump only the appropriate number of arguments */
     threads_ctx[tid].syscall_ctx.ret = PIN_GetSyscallReturn(ctx, std);
 
-    /*
-     * dump the architectural state of the processor;
-     * saved as "auxiliary" data
-     */
-    threads_ctx[tid].syscall_ctx.aux = ctx;
+    /* dump the architectural state of the processor */
+    threads_ctx[tid].syscall_ctx.pinctx = ctx;
 
     /* thread_ctx[tid].syscall_ctx.errno =
        PIN_GetSyscallErrno(ctx, std); */
