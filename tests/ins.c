@@ -43,8 +43,25 @@ void test_mov_32bit_extend_reg(uint64_t tainted, uint32_t untainted) {
 	: : [atainted] "r" (tainted), [auntainted] "r" (untainted) : "rdi");
 }
 
+void test_push(uint64_t tainted64, uint16_t tainted16) {
+  // 4-byte pushes/pops not supported by x86-64
+  asm(	NOPS
+	"push %[atainted64];"
+	"pop %%rdi;"
+	"call __libdft_getvaln_taint;" // rdi (all 8) = should be tainted
+	"pushq $22;"
+	"pop %%rdi;"
+	"call __libdft_getval_taint;" // rdi (all 8) = should be untainted
+	"push %[atainted16];"
+	"pop %%di;"
+	"call __libdft_getvaln_taint;" // di (lower 2) = should be tainted
+	NOPS
+	: : [atainted64] "r" (tainted64), [atainted16] "r" (tainted16) : "rdi");
+}
+
 int main(int argc, char** argv) {
   uint8_t tainted8 = 1; __libdft_set_taint(&tainted8, 34, 1);
+  uint64_t tainted16 = 1; __libdft_set_taint(&tainted16, 34, 2);
   uint64_t tainted32 = 1; __libdft_set_taint(&tainted32, 34, 4);
   uint64_t tainted64 = 1; __libdft_set_taint(&tainted64, 34, 8);
 
@@ -60,6 +77,13 @@ int main(int argc, char** argv) {
   printf(BANNER);
   printf(EXP "v: 1234, lbl: 0, ...\n");
   test_mov_32bit_extend_reg(tainted64, 1234);
+
+  printf(BANNER);
+  printf(EXP " byte: 0--7, ..., lbl: 34, ...\n");
+  printf(EXP "v: 22, lbl: 0, ...\n");
+  printf(EXP " bytes: 0--1, ..., lbl: 34, ...\n");
+  printf(EXP " bytes: 2--7, ..., lbl: 0, ...\n");
+  test_push(tainted64, tainted16);
 
   // TODO: Test e.g., "mov $0, %%di;" to make sure only the lower 2 bytes propagate taint
 
