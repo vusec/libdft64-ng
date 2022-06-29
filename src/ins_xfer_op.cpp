@@ -442,6 +442,7 @@ void ins_push_op(INS ins) {
     if (REG_is_gr64(reg_src)) {
       R2M_CALL(r2m_xfer_opq, reg_src);
     } else if (REG_is_gr32(reg_src)) {
+      // TODO: Pretty sure a 32-bit push doesn't exist for x86-64
       R2M_CALL(r2m_xfer_opl, reg_src); // TODO: Sign extend 32-bit operand to 64-bit?
     } else {
       R2M_CALL(r2m_xfer_opw, reg_src);
@@ -450,12 +451,13 @@ void ins_push_op(INS ins) {
     if (INS_MemoryWriteSize(ins) == BIT2BYTE(MEM_64BIT_LEN)) {
       M2M_CALL(m2m_xfer_opq);
     } else if (INS_MemoryWriteSize(ins) == BIT2BYTE(MEM_LONG_LEN)) {
+      // TODO: Pretty sure a 32-bit push doesn't exist for x86-64
       M2M_CALL(m2m_xfer_opl); // TODO: Sign extend 32-bit operand to 64-bit?
     } else {
       M2M_CALL(m2m_xfer_opw);
     }
   } else {
-    INT32 n = INS_OperandWidth(ins, OP_0) / 8;
+    INT32 n = INS_MemoryWriteSize(ins);
     M_CLEAR_N(n);
   }
 }
@@ -467,7 +469,8 @@ void ins_pop_op(INS ins) {
     if (REG_is_gr64(reg_dst)) {
       M2R_CALL(m2r_xfer_opq, reg_dst);
     } else if (REG_is_gr32(reg_dst)) {
-      M2R_CALL(_movsx_m2r_opql, reg_dst); // Sign extend 32-bit operand to 64-bit
+      // TODO: Pretty sure a 32-bit pop doesn't exist for x86-64
+      M2R_CALL(m2r_xfer_opl, reg_dst); // TODO: Sign extend 32-bit operand to 64-bit?
     } else {
       M2R_CALL(m2r_xfer_opw, reg_dst);
     }
@@ -475,6 +478,7 @@ void ins_pop_op(INS ins) {
     if (INS_MemoryWriteSize(ins) == BIT2BYTE(MEM_64BIT_LEN)) {
       M2M_CALL(m2m_xfer_opq);
     } else if (INS_MemoryWriteSize(ins) == BIT2BYTE(MEM_LONG_LEN)) {
+      // TODO: Pretty sure a 32-bit pop doesn't exist for x86-64
       M2M_CALL(m2m_xfer_opl); // TODO: Sign extend 32-bit operand to 64-bit?
     } else {
       M2M_CALL(m2m_xfer_opw);
@@ -635,7 +639,6 @@ void PIN_FAST_ANALYSIS_CALL m2r_xfer_opw_rev(THREADID tid, uint32_t dst,
     RTAG[dst][i] = MTAG(src + (1 - i));
 }
 
-// TODO: Sign extend 32-bit operand to 64-bit?
 void PIN_FAST_ANALYSIS_CALL m2r_xfer_opl_rev(THREADID tid, uint32_t dst,
                                              ADDRINT src) {
   for (size_t i = 0; i < 4; i++)
