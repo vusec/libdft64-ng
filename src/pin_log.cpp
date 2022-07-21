@@ -12,7 +12,7 @@ PinLogPerProcess::PinLogPerProcess(const char *ffmt)
 	this->pin_initialized = FALSE;
 	this->file_fmt = std::string(ffmt);
 	if (!PIN_MutexInit(&this->mutex))
-		PIN_ERROR("could not initialize mutex");
+		PIN_ERROR("could not initialize mutex\n");
 	this->data.file = NULL;
 	this->ctx_update();
 	this->pin_init();
@@ -25,7 +25,7 @@ PinLogPerProcess::~PinLogPerProcess()
 	log_ctx_t *data = &this->data;
 	PIN_MutexLock(&this->mutex);
 	if (data->file != NULL && fclose(data->file))
-		PIN_ERROR("error closing log file");
+		PIN_ERROR("error closing log file\n");
 	data->file = NULL;
 	PIN_MutexUnlock(&this->mutex);
 	PIN_MutexFini(&this->mutex);
@@ -53,7 +53,7 @@ PinLogPerThread::~PinLogPerThread()
 		//TODO: object is shared by multiple threads
 		//      probably we'll have to keep track of tids that use it, so all files are closed here
 		if (data->file != NULL && fclose(data->file))
-			PIN_ERROR("error closing log file");
+			PIN_ERROR("error closing log file\n");
 		data->file = NULL;
 		PIN_SetThreadData(this->tlsk, NULL, tid);
 	}
@@ -77,7 +77,7 @@ void PinLogPerProcess::ctx_update()
 	// update context
 	PIN_MutexLock(&this->mutex);
 	if (data->file != NULL && fclose(data->file))
-		PIN_ERROR("error closing log file");
+		PIN_ERROR("error closing log file\n");
 	data->id = id_cur;
 	data->pid = PIN_GetPid();
 	data->threadid = PIN_ThreadId();
@@ -85,7 +85,7 @@ void PinLogPerProcess::ctx_update()
 	data->file_path = std::string(path);
 	data->file = fopen(data->file_path.c_str(), "w");
 	if (!data->file)
-		PIN_ERROR("could not open log file for writing");
+		PIN_ERROR("could not open log file for writing: " + data->file_path + "\n");
 	data->started = FALSE;
 	PIN_MutexUnlock(&this->mutex);
 }
@@ -115,7 +115,7 @@ void PinLogPerThread::ctx_update()
 
 		// if pid != data->pid, we've just been forked
 		if (data->file != NULL && fclose(data->file))
-			PIN_ERROR("error closing log file");
+			PIN_ERROR("error closing log file\n");
 	}
 	else {
 		// context not changed
@@ -130,7 +130,7 @@ void PinLogPerThread::ctx_update()
 	data->file_path = std::string(path);
 	data->file = fopen(data->file_path.c_str(), "w");
 	if (!data->file)
-		PIN_ERROR("could not open log file for writing");
+		PIN_ERROR("could not open log file for writing:" + data->file_path + "\n");
 	data->started = FALSE;
 }
 
@@ -163,7 +163,7 @@ void PinLogPerThread::pin_thread_fini(THREADID tid, const CONTEXT *ctxt, INT32 c
 	if (data != NULL) {
 		_this->_logts("thread finished pid:%d tid:%d\n", PIN_GetPid(), PIN_GetTid());
 		if (data->file != NULL && fclose(data->file))
-			PIN_ERROR("error closing log file");
+			PIN_ERROR("error closing log file\n");
 		data->file = NULL;
 		delete data;
 		PIN_SetThreadData(_this->tlsk, NULL, tid);
