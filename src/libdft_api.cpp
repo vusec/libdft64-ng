@@ -133,7 +133,7 @@ static void sysenter_save(THREADID tid, CONTEXT *ctx, SYSCALL_STANDARD std,
   // LOG_DBG("[syscall] %ld\n", syscall_nr);
   /* unknown syscall; optimized branch */
   if (unlikely(syscall_nr >= SYSCALL_MAX)) {
-    LOG_ERR("%s:%u: unknown syscall(num=%lu)", __func__, __LINE__,
+    LOG_ERR("%s:%u: unknown syscall(num=%lu)\n", __func__, __LINE__,
             syscall_nr);
     /* syscall number is set to -1; hint for the sysexit_save() */
     threads_ctx[tid].syscall_ctx.nr = -1;
@@ -186,7 +186,7 @@ static void sysexit_save(THREADID tid, CONTEXT *ctx, SYSCALL_STANDARD std,
 
   /* unknown syscall; optimized branch */
   if (unlikely(syscall_nr < 0)) {
-    LOG_ERR("%s:%u: unknown syscall(num=%d)", __func__, __LINE__,
+    LOG_ERR("%s:%u: unknown syscall(num=%d)\n", __func__, __LINE__,
             syscall_nr);
     /* no context save and no pre-syscall callback invocation */
     return;
