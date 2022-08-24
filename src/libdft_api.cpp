@@ -52,6 +52,7 @@ PinLog *_libdft_out = NULL;
 PinLog *_libdft_err = NULL;
 PinLog *_libdft_dbg = NULL;
 bool _log_to_std = true;
+char _libdft_debug_str[LIBDFT_DEBUG_STR_LEN] = "";
 
 /*
  * thread start callback (analysis function)
@@ -347,6 +348,16 @@ libdft_cmd_handler(ADDRINT cmd, ADDRINT arg1, const CONTEXT *ctxt)
 		memtaint_taint_all();
 		break;
 #endif
+	case CMD_SET_DEBUG_STR: {
+		char * arg_str = (char *) arg1;
+		int i;
+		memset(_libdft_debug_str, 0, LIBDFT_DEBUG_STR_LEN); // Just to be safe
+		// Copy the first argument (i.e., until LIBDFT_DEBUG_STR_LEN, or the first space), then null-terminate
+		for (i = 0; i < LIBDFT_DEBUG_STR_LEN && !isspace(arg_str[i]); i++) _libdft_debug_str[i] = arg_str[i];
+		_libdft_debug_str[i] = '\0';
+		//LOG_ERR("Setting debug string: _libdft_debug_str = '%s'\n", _libdft_debug_str);
+		break;
+	}
 	default:
 		LOG_ERR("Invalid libdft command: %lu\n", cmd);
 		break;
