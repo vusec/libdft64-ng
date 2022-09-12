@@ -11,7 +11,7 @@ extern PinLog *_libdft_out;
 extern PinLog *_libdft_err;
 extern PinLog *_libdft_dbg;
 extern bool _log_to_std;
-#define LIBDFT_DEBUG_STR_LEN 50
+#define LIBDFT_DEBUG_STR_LEN 100
 extern char _libdft_debug_str[LIBDFT_DEBUG_STR_LEN];
 
 #define LOG_OUT(...)             \
