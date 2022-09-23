@@ -202,10 +202,17 @@ void memtaint_init(void *addr, size_t len)
 #endif
 }
 
+// No callback by default
+static void nop() { }
+static void(*memtaint_callback)() = nop;
+void memtaint_set_callback(void(*new_callback)()) { memtaint_callback = new_callback; }
+
 void memtaint_taint_all()
 {
 	if (tagmap_all_tainted)
 		return;
+
+	memtaint_callback();
 
 	LOG_OUT("%s: Tainting all memory...\n", __FILE__);
 
