@@ -140,8 +140,7 @@ memtaint_spfh_thread(void *arg)
 	uffd = (long)arg;
 	size_t page_size = PAGE_SIZE;
 
-
-	LOG_OUT("    **** Creating a page that will be copied into the faulting region...\n");
+	LOG_MEMTAINT("    **** Creating a page that will be copied into the faulting region...\n");
 	/* Create a page that will be copied into the faulting region. */
 	page = (char *)mmap(NULL, page_size, PROT_READ | PROT_WRITE,
 						MAP_PRIVATE | MAP_ANONYMOUS | MAP_POPULATE, -1, 0);
