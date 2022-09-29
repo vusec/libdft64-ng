@@ -37,6 +37,7 @@
 
 #include "tagmap.h"
 #include "debug.h"
+#include "memory_map.h"
 
 #include <inttypes.h>
 #include <sys/types.h>
@@ -72,7 +73,7 @@
 	} while (0)
 
 #ifdef DEBUG_MEMTAINT
-#define LOG_MEMTAINT(...) LOG_OUT(__VA_ARGS__)
+#define LOG_MEMTAINT(...) LOG_OUT("[memtaint] " __VA_ARGS__)
 #else
 #define LOG_MEMTAINT(...)
 #endif
@@ -97,32 +98,30 @@ do_madvise(void *addr, size_t length, int advice)
 // Page checking
 // =====================================================================
 
+static procmap::memory_map * memmap;
 static bool taint_nonwritable_mem = true; // By default, taint non-writable memory
 static bool taint_stack_mem = true; // By default, taint stack memory
 
 void memtaint_dont_taint_nonwritable_mem(void) { taint_nonwritable_mem = false; }
 void memtaint_dont_taint_stack_mem(void) { taint_stack_mem = false; }
 
-static bool page_is_stack(ptroff_t addr) {
-	// TODO
-	return false;
-	// Below for test:
-	//return addr >= 0x7ffffffdd000 && addr < 0x7ffffffff000;
+static void memmap_init(void) {
+	memmap = new procmap::memory_map();
+#ifdef DEBUG_MEMTAINT
+	memmap->print();
+#endif
 }
-
-static bool page_is_writable(ptroff_t addr) {
-	// TODO
-	return false;
-	// Below for test:
-	//return addr >= 0x7fff00107000 && addr < 0x7fff00108000;
-}
-
 
 static bool
-page_is_taintable(ptroff_t addr)
+page_is_taintable(void * addr)
 {
-	return (taint_nonwritable_mem || !page_is_writable(addr)) &&
-		   (taint_stack_mem || !page_is_stack(addr));
+	for (auto &segment : *memmap) {
+		if (addr >= segment.startAddress() && addr < segment.endAddress()) {
+			return (taint_nonwritable_mem || !segment.isWriteable()) &&
+				(taint_stack_mem || !segment.isStack());
+		}
+	}
+	return true;
 }
 
 // =====================================================================
@@ -187,7 +186,7 @@ memtaint_spfh_thread(void *arg)
 		char *paddr = (char *)(msg.arg.pagefault.address & ~(page_size - 1));
 		if (tagmap_all_tainted)
 		{
-			if (!page_is_taintable((ptroff_t)shadow_to_addr((tag_t *)(paddr)))) {
+			if (!page_is_taintable(shadow_to_addr((tag_t *)(paddr)))) {
 				/* Create zero page. */
 				LOG_MEMTAINT("    Filling zero page: shadow_addr=%p, main_addr=%p, first tag = (empty)\n",
 					paddr, shadow_to_addr((tag_t *)paddr));
@@ -267,6 +266,7 @@ void memtaint_taint_all()
 	if (tagmap_all_tainted)
 		return;
 
+	memmap_init();
 	memtaint_callback();
 
 	LOG_OUT("%s: Tainting all memory...\n", __FILE__);
