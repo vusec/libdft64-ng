@@ -52,7 +52,13 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 
+// =====================================================================
+// Globals and helpers
+// =====================================================================
+
 #ifdef LIBDFT_TAG_PTR
+
+#define PAGE_SIZE 4096
 
 #ifndef __NR_userfaultfd
 #define __NR_userfaultfd 323
@@ -64,6 +70,12 @@
 		perror(msg);        \
 		exit(EXIT_FAILURE); \
 	} while (0)
+
+#ifdef DEBUG_MEMTAINT
+#define LOG_MEMTAINT(...) LOG_OUT(__VA_ARGS__)
+#else
+#define LOG_MEMTAINT(...)
+#endif
 
 int tagmap_all_tainted;
 static void *shadow_addr;
@@ -81,6 +93,42 @@ do_madvise(void *addr, size_t length, int advice)
 	return syscall(__NR_madvise, addr, length, advice);
 }
 
+// =====================================================================
+// Page checking
+// =====================================================================
+
+static bool taint_nonwritable_mem = true; // By default, taint non-writable memory
+static bool taint_stack_mem = true; // By default, taint stack memory
+
+void memtaint_dont_taint_nonwritable_mem(void) { taint_nonwritable_mem = false; }
+void memtaint_dont_taint_stack_mem(void) { taint_stack_mem = false; }
+
+static bool page_is_stack(ptroff_t addr) {
+	// TODO
+	return false;
+	// Below for test:
+	//return addr >= 0x7ffffffdd000 && addr < 0x7ffffffff000;
+}
+
+static bool page_is_writable(ptroff_t addr) {
+	// TODO
+	return false;
+	// Below for test:
+	//return addr >= 0x7fff00107000 && addr < 0x7fff00108000;
+}
+
+
+static bool
+page_is_taintable(ptroff_t addr)
+{
+	return (taint_nonwritable_mem || !page_is_writable(addr)) &&
+		   (taint_stack_mem || !page_is_stack(addr));
+}
+
+// =====================================================================
+// Memory tainting
+// =====================================================================
+
 static void
 memtaint_spfh_thread(void *arg)
 {
@@ -90,8 +138,10 @@ memtaint_spfh_thread(void *arg)
 	struct uffdio_copy uffdio_copy;
 	ssize_t nread;
 	uffd = (long)arg;
-	size_t page_size = 4096;
+	size_t page_size = PAGE_SIZE;
 
+
+	LOG_OUT("    **** Creating a page that will be copied into the faulting region...\n");
 	/* Create a page that will be copied into the faulting region. */
 	page = (char *)mmap(NULL, page_size, PROT_READ | PROT_WRITE,
 						MAP_PRIVATE | MAP_ANONYMOUS | MAP_POPULATE, -1, 0);
@@ -128,27 +178,33 @@ memtaint_spfh_thread(void *arg)
 			exit(EXIT_FAILURE);
 		}
 
-#ifdef DEBUG_MEMTAINT
 		/* Display info about the page-fault event. */
-		LOG_OUT("UFFD_EVENT_PAGEFAULT event: ");
-		LOG_OUT("flags = %llu; ", msg.arg.pagefault.flags);
-		LOG_OUT("address = %p\n", (void *)msg.arg.pagefault.address);
-#endif
+		LOG_MEMTAINT("UFFD_EVENT_PAGEFAULT event: ");
+		LOG_MEMTAINT("flags = %llu; ", msg.arg.pagefault.flags);
+		LOG_MEMTAINT("address = %p\n", (void *)msg.arg.pagefault.address);
+
 		/* Copy the page pointed to by 'page' into the faulting region. */
 		uffdio_copy.src = (unsigned long)page;
 		char *paddr = (char *)(msg.arg.pagefault.address & ~(page_size - 1));
 		if (tagmap_all_tainted)
 		{
-			/* Create identity page rather than the zero page. */
-#ifdef DEBUG_MEMTAINT
-			LOG_OUT("    Filling identify page: shadow_addr=%p, main_addr=%p, first tag=%p\n",
-				   paddr, shadow_to_addr((tag_t *)paddr), (void*)(uint64_t) ptr_to_tag(shadow_to_addr((tag_t *)paddr)));
-#endif
-			for (unsigned i = 0; i < page_size; i += TAG_SIZE)
-			{
-				tag_t *t = (tag_t *)&page[i];
-				void *addr = shadow_to_addr((tag_t *)(paddr + i));
-				*t = tag_alloc<tag_t>(ptr_to_tag(addr));
+			if (!page_is_taintable((ptroff_t)shadow_to_addr((tag_t *)(paddr)))) {
+				/* Create zero page. */
+				LOG_MEMTAINT("    Filling zero page: shadow_addr=%p, main_addr=%p, first tag = (empty)\n",
+					paddr, shadow_to_addr((tag_t *)paddr));
+				for (unsigned i = 0; i < page_size; i += TAG_SIZE) *((tag_t *)&page[i]) = tag_traits<tag_t>::cleared_val;
+			}
+
+			else {
+				/* Create identity page rather than the zero page. */
+				LOG_MEMTAINT("    Filling identify page: shadow_addr=%p, main_addr=%p, first tag=%p\n",
+					paddr, shadow_to_addr((tag_t *)paddr), (void*)(uint64_t) ptr_to_tag(shadow_to_addr((tag_t *)paddr)));
+				for (unsigned i = 0; i < page_size; i += TAG_SIZE)
+				{
+					tag_t *t = (tag_t *)&page[i];
+					void *addr = shadow_to_addr((tag_t *)(paddr + i));
+					*t = tag_alloc<tag_t>(ptr_to_tag(addr));
+				}
 			}
 		}
 
