@@ -117,8 +117,9 @@ page_is_taintable(void * addr)
 {
 	for (auto &segment : *memmap) {
 		if (addr >= segment.startAddress() && addr < segment.endAddress()) {
-			return (taint_nonwritable_mem || !segment.isWriteable()) &&
-				(taint_stack_mem || !segment.isStack());
+			if (!taint_nonwritable_mem && !segment.isWriteable()) return false;
+			if (!taint_stack_mem && segment.isStack()) return false;
+			return true;
 		}
 	}
 	return true;
