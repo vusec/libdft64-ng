@@ -201,10 +201,12 @@ void ins_movsx_op(INS ins) {
     }
   } else {
     reg_dst = INS_OperandReg(ins, OP_0);
+    assert(INS_MemoryOperandIsRead(ins, MEMOP_0));
+    USIZE n = INS_MemoryOperandSize(ins, MEMOP_0);
     if (REG_is_gr16(reg_dst)) {
       M2R_CALL(_movsx_m2r_opwb, reg_dst);   // [8] --> 16
       return;
-    } else if (INS_MemoryWriteSize(ins) == BIT2BYTE(MEM_WORD_LEN)) {
+    } else if (n == BIT2BYTE(MEM_WORD_LEN)) {
       if (REG_is_gr64(reg_dst)) {
         M2R_CALL(_movsx_m2r_opqw, reg_dst); // [16] --> 64
         return;

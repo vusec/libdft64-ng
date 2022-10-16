@@ -438,6 +438,7 @@ void ins_xfer_op_predicated(INS ins) {
 void ins_push_op(INS ins) {
   REG reg_src;
   if (INS_OperandIsReg(ins, OP_0)) {
+    // E.g., "push rax"
     reg_src = INS_OperandReg(ins, OP_0);
     if (REG_is_gr64(reg_src)) {
       R2M_CALL(r2m_xfer_opq, reg_src);
@@ -448,16 +449,21 @@ void ins_push_op(INS ins) {
       R2M_CALL(r2m_xfer_opw, reg_src);
     }
   } else if (INS_OperandIsMemory(ins, OP_0)) {
-    if (INS_MemoryWriteSize(ins) == BIT2BYTE(MEM_64BIT_LEN)) {
+    // E.g., "push [rax]"
+    assert(INS_MemoryOperandIsWritten(ins, MEMOP_1));
+    USIZE n = INS_MemoryOperandSize(ins, MEMOP_1);
+    if (n == BIT2BYTE(MEM_64BIT_LEN)) {
       M2M_CALL(m2m_xfer_opq);
-    } else if (INS_MemoryWriteSize(ins) == BIT2BYTE(MEM_LONG_LEN)) {
+    } else if (n == BIT2BYTE(MEM_LONG_LEN)) {
       // TODO: Pretty sure a 32-bit push doesn't exist for x86-64
       M2M_CALL(m2m_xfer_opl); // TODO: Sign extend 32-bit operand to 64-bit?
     } else {
       M2M_CALL(m2m_xfer_opw);
     }
   } else {
-    INT32 n = INS_MemoryWriteSize(ins);
+    // E.g., "push 0x0"
+    assert(INS_MemoryOperandIsWritten(ins, MEMOP_0));
+    USIZE n = INS_MemoryOperandSize(ins, MEMOP_0);
     M_CLEAR_N(n);
   }
 }
@@ -465,6 +471,7 @@ void ins_push_op(INS ins) {
 void ins_pop_op(INS ins) {
   REG reg_dst;
   if (INS_OperandIsReg(ins, OP_0)) {
+    // E.g., "pop rax"
     reg_dst = INS_OperandReg(ins, OP_0);
     if (REG_is_gr64(reg_dst)) {
       M2R_CALL(m2r_xfer_opq, reg_dst);
@@ -475,9 +482,12 @@ void ins_pop_op(INS ins) {
       M2R_CALL(m2r_xfer_opw, reg_dst);
     }
   } else if (INS_OperandIsMemory(ins, OP_0)) {
-    if (INS_MemoryWriteSize(ins) == BIT2BYTE(MEM_64BIT_LEN)) {
+    // E.g., "pop [rax]"
+    assert(INS_MemoryOperandIsWritten(ins, MEMOP_0));
+    USIZE n = INS_MemoryOperandSize(ins, MEMOP_0);
+    if (n == BIT2BYTE(MEM_64BIT_LEN)) {
       M2M_CALL(m2m_xfer_opq);
-    } else if (INS_MemoryWriteSize(ins) == BIT2BYTE(MEM_LONG_LEN)) {
+    } else if (n == BIT2BYTE(MEM_LONG_LEN)) {
       // TODO: Pretty sure a 32-bit pop doesn't exist for x86-64
       M2M_CALL(m2m_xfer_opl); // TODO: Sign extend 32-bit operand to 64-bit?
     } else {

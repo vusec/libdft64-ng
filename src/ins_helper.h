@@ -14,6 +14,11 @@
 #define OP_2 2 /* 2nd (3rd) operand index */
 #define OP_3 3 /* 3rd (4th) operand index */
 #define OP_4 4 /* 4th (5th) operand index */
+#define MEMOP_0 0 /* 0th (1st) memory operand index */
+#define MEMOP_1 1 /* 1st (2nd) memory operand index */
+#define MEMOP_2 2 /* 2nd (3rd) memory operand index */
+#define MEMOP_3 3 /* 3rd (4th) memory operand index */
+#define MEMOP_4 4 /* 4th (5th) memory operand index */
 #define MEM_64BIT_LEN 64
 #define MEM_LONG_LEN 32            /* long size (32-bit) */
 #define MEM_WORD_LEN 16            /* word size (16-bit) */
