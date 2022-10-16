@@ -59,6 +59,48 @@ void test_push(uint64_t tainted64, uint16_t tainted16) {
 	: : [atainted64] "r" (tainted64), [atainted16] "r" (tainted16) : "rdi");
 }
 
+void test_mul_r2r(uint64_t tainted) {
+  asm(	NOPS
+	// Start from cleared vals/taint
+	"xor %%rax, %%rax;"
+	"xor %%rdx, %%rdx;"
+	"xor %%rdi, %%rdi;"
+	// Mul
+	"mov $1234, %%rax;"		// rax = should be untainted
+	"mov %[atainted], %%rdi;"	// rdi = should be tainted
+	"mulq %%rdi;" 			// rdx:rax = 1234 * rdi = tainted
+	// Eval result
+	"push %%rdx;"
+	"push %%rax;"
+	"pop %%rdi;"
+	"call __libdft_getval_taint;"	// Testing result's lower bits (rax)
+	"pop %%rdi;"
+	"call __libdft_getval_taint;"	// Testing result's upper bits (rdx)
+	NOPS
+	: : [atainted] "r" (tainted) : "rax", "rdx", "rdi");
+}
+
+void test_mul_m2r(uint64_t *tainted) {
+  asm(	NOPS
+	// Start from cleared vals/taint
+	"xor %%rax, %%rax;"
+	"xor %%rdx, %%rdx;"
+	"xor %%rdi, %%rdi;"
+	// Mul
+	"mov $1234, %%rax;"		// rax = should be untainted
+	"mov %[atainted], %%rdi;"	// rdi = should be tainted
+	"mulq (%%rdi);" 		// rdx:rax = 1234 * [rdi] = tainted
+	// Eval result
+	"push %%rdx;"
+	"push %%rax;"
+	"pop %%rdi;"
+	"call __libdft_getval_taint;"	// Testing result's lower bits (rax)
+	"pop %%rdi;"
+	"call __libdft_getval_taint;"	// Testing result's upper bits (rdx)
+	NOPS
+	: : [atainted] "m" (tainted) : "rax", "rdx", "rdi", "memory");
+}
+
 int main(int argc, char** argv) {
   uint8_t tainted8 = 1; __libdft_set_taint(&tainted8, 34, 1);
   uint64_t tainted16 = 1; __libdft_set_taint(&tainted16, 34, 2);
@@ -84,6 +126,16 @@ int main(int argc, char** argv) {
   printf(EXP " bytes: 0--1, ..., lbl: 34, ...\n");
   printf(EXP " bytes: 2--7, ..., lbl: 0, ...\n");
   test_push(tainted64, tainted16);
+
+  printf(BANNER);
+  printf(EXP "v: 1234, lbl: 34, ...\n");
+  printf(EXP "v: 0, lbl: 34, ...\n");
+  test_mul_r2r(tainted64);
+
+  printf(BANNER);
+  printf(EXP "v: 1234, lbl: 34, ...\n");
+  printf(EXP "v: 0, lbl: 34, ...\n");
+  test_mul_m2r(&tainted64);
 
   // TODO: Test e.g., "mov $0, %%di;" to make sure only the lower 2 bytes propagate taint
 
