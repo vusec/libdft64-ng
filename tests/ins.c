@@ -44,7 +44,7 @@ void test_mov_32bit_extend_reg(uint64_t tainted, uint32_t untainted) {
 }
 
 void test_push(uint64_t tainted64, uint16_t tainted16) {
-  // 4-byte pushes/pops not supported by x86-64
+  // Note: 4-byte pushes/pops are not supported by x86-64
   asm(	NOPS
 	"push %[atainted64];"
 	"pop %%rdi;"
