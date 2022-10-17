@@ -133,7 +133,7 @@ static void sysenter_save(THREADID tid, CONTEXT *ctx, SYSCALL_STANDARD std,
   size_t syscall_nr = PIN_GetSyscallNumber(ctx, std);
   // LOG_DBG("[syscall] %ld\n", syscall_nr);
   /* unknown syscall; optimized branch */
-  if (unlikely(syscall_nr >= SYSCALL_MAX)) {
+  if (unlikely(!is_valid_syscall_nr(syscall_nr))) {
     LOG_ERR("%s:%u: unknown syscall(num=%lu)\n", __func__, __LINE__,
             syscall_nr);
     /* syscall number is set to -1; hint for the sysexit_save() */
@@ -186,7 +186,7 @@ static void sysexit_save(THREADID tid, CONTEXT *ctx, SYSCALL_STANDARD std,
   int syscall_nr = threads_ctx[tid].syscall_ctx.nr;
 
   /* unknown syscall; optimized branch */
-  if (unlikely(syscall_nr < 0)) {
+  if (unlikely(!is_valid_syscall_nr(syscall_nr))) {
     LOG_ERR("%s:%u: unknown syscall(num=%d)\n", __func__, __LINE__,
             syscall_nr);
     /* no context save and no pre-syscall callback invocation */
@@ -395,6 +395,9 @@ int libdft_init(bool enable_load_ptr_prop) {
 
   /* initialize symbol processing */
   PIN_InitSymbolsAlt(IFUNC_SYMBOLS);
+
+  // Initialize syscall_desc list
+  syscall_desc_init();
 
   /* initialize thread contexts; optimized branch */
   if (unlikely(thread_ctx_init()))
