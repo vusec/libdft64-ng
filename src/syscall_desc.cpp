@@ -113,13 +113,7 @@ syscall_desc_t syscall_desc[SYSCALL_MAX] = {
     /* __NR_pipe = 22 */
     {1, 0, 1, {sizeof(int) * 2, 0, 0, 0, 0, 0}, NULL, NULL},
     /* __NR_select = 23 */
-    {5,
-     0,
-     1,
-     {0, sizeof(fd_set), sizeof(fd_set), sizeof(fd_set), sizeof(struct timeval),
-      0},
-     NULL,
-     NULL},
+    {5, 0, 1, {0, sizeof(fd_set), sizeof(fd_set), sizeof(fd_set), sizeof(struct timeval), 0}, NULL, NULL},
     /* __NR_sched_yield = 24 */
     {0, 0, 0, {0, 0, 0, 0, 0, 0}, NULL, NULL},
     /* __NR_mremap = 25 */
@@ -143,12 +137,7 @@ syscall_desc_t syscall_desc[SYSCALL_MAX] = {
     /* __NR_pause = 34 */
     {0, 0, 0, {0, 0, 0, 0, 0, 0}, NULL, NULL},
     /* __NR_nanosleep = 35 */
-    {2,
-     0,
-     1,
-     {sizeof(struct timespec), sizeof(struct timespec), 0, 0, 0, 0},
-     NULL,
-     NULL},
+    {2, 0, 1, {sizeof(struct timespec), sizeof(struct timespec), 0, 0, 0, 0}, NULL, NULL},
     /* __NR_getitimer = 36 */
     {2, 0, 1, {0, sizeof(struct itimerval), 0, 0, 0, 0}, NULL, NULL},
     /* __NR_alarm = 37 */
@@ -270,12 +259,7 @@ syscall_desc_t syscall_desc[SYSCALL_MAX] = {
     /* __NR_umask = 95 */
     {1, 0, 0, {0, 0, 0, 0, 0, 0}, NULL, NULL},
     /* __NR_gettimeofday = 96 */
-    {2,
-     0,
-     1,
-     {sizeof(struct timeval), sizeof(struct timezone), 0, 0, 0, 0},
-     NULL,
-     NULL},
+    {2, 0, 1, {sizeof(struct timeval), sizeof(struct timezone), 0, 0, 0, 0}, NULL, NULL},
     /* __NR_getrlimit = 97 */
     {2, 0, 1, {0, sizeof(struct rlimit), 0, 0, 0, 0}, NULL, NULL},
     /* __NR_getrusage = 98 */
@@ -319,21 +303,11 @@ syscall_desc_t syscall_desc[SYSCALL_MAX] = {
     /* __NR_setresuid = 117 */
     {3, 0, 0, {0, 0, 0, 0, 0, 0}, NULL, NULL},
     /* __NR_getresuid = 118 */
-    {3,
-     0,
-     1,
-     {sizeof(uid_t), sizeof(uid_t), sizeof(uid_t), 0, 0, 0},
-     NULL,
-     NULL},
+    {3, 0, 1, {sizeof(uid_t), sizeof(uid_t), sizeof(uid_t), 0, 0, 0}, NULL, NULL},
     /* __NR_setresgid = 119 */
     {3, 0, 0, {0, 0, 0, 0, 0, 0}, NULL, NULL},
     /* __NR_getresgid = 120 */
-    {3,
-     0,
-     1,
-     {sizeof(git_t), sizeof(git_t), sizeof(git_t), 0, 0, 0},
-     NULL,
-     NULL},
+    {3, 0, 1, {sizeof(git_t), sizeof(git_t), sizeof(git_t), 0, 0, 0}, NULL, NULL},
     /* __NR_getpgid = 121 */
     {1, 0, 0, {0, 0, 0, 0, 0, 0}, NULL, NULL},
     /* __NR_setfsuid = 122 */
@@ -587,12 +561,7 @@ syscall_desc_t syscall_desc[SYSCALL_MAX] = {
     /* __NR_kexec_load = 246 */
     {4, 0, 0, {0, 0, 0, 0, 0, 0}, NULL, NULL},
     /* __NR_waitid = 247 */
-    {5,
-     0,
-     1,
-     {0, 0, sizeof(siginfo_t), 0, sizeof(struct rusage), 0},
-     NULL,
-     NULL},
+    {5, 0, 1, {0, 0, sizeof(siginfo_t), 0, sizeof(struct rusage), 0}, NULL, NULL},
     /* __NR_add_key = 248 */
     {4, 0, 0, {0, 0, 0, 0, 0, 0}, NULL, NULL},
     /* __NR_request_key = 249 */
@@ -638,12 +607,7 @@ syscall_desc_t syscall_desc[SYSCALL_MAX] = {
     /* __NR_faccessat = 269 */
     {3, 0, 0, {0, 0, 0, 0, 0, 0}, NULL, NULL},
     /* __NR_pselect6 = 270 */
-    {6,
-     0,
-     1,
-     {0, sizeof(fd_set), sizeof(fd_set), sizeof(fd_set), 0, 0},
-     NULL,
-     NULL},
+    {6, 0, 1, {0, sizeof(fd_set), sizeof(fd_set), sizeof(fd_set), 0, 0}, NULL, NULL},
     /* __NR_ppoll = 271 */
     {5, 1, 0, {0, 0, 0, 0, 0, 0}, NULL, post_poll_hook},
     /* __NR_unshare = 272 */
@@ -651,12 +615,7 @@ syscall_desc_t syscall_desc[SYSCALL_MAX] = {
     /* __NR_set_robust_list = 273 */
     {2, 0, 0, {0, 0, 0, 0, 0, 0}, NULL, NULL},
     /* __NR_get_robust_list = 274 */
-    {3,
-     0,
-     1,
-     {0, sizeof(struct robust_list_head *), sizeof(size_t), 0, 0, 0},
-     NULL,
-     NULL},
+    {3, 0, 1, {0, sizeof(struct robust_list_head *), sizeof(size_t), 0, 0, 0}, NULL, NULL},
     /* __NR_splice = 275 */
     {6, 0, 1, {0, sizeof(loff_t), 0, sizeof(loff_t), 0, 0}, NULL, NULL},
     /* __NR_tee = 276 */
@@ -714,12 +673,7 @@ syscall_desc_t syscall_desc[SYSCALL_MAX] = {
     /* __NR_prlimit64 = 302 */
     {4, 0, 1, {0, 0, 0, sizeof(struct rlimit), 0, 0}, NULL, NULL},
     /* __NR_name_to_handle_at = 303 */
-    {5,
-     0,
-     1,
-     {0, 0, sizeof(struct file_handle), sizeof(int), 0, 0},
-     NULL,
-     NULL},
+    {5, 0, 1, {0, 0, sizeof(struct file_handle), sizeof(int), 0, 0}, NULL, NULL},
     /* __NR_open_by_handle_at = 304 */
     {3, 0, 1, {0, 0, sizeof(struct file_handle), 0, 0, 0}, NULL, NULL},
     /* __NR_clock_adjtime = 305 */
@@ -731,12 +685,7 @@ syscall_desc_t syscall_desc[SYSCALL_MAX] = {
     /* __NR_setns = 308 */
     {2, 0, 0, {0, 0, 0, 0, 0, 0}, NULL, NULL},
     /* __NR_getcpu = 309 */
-    {3,
-     0,
-     1,
-     {sizeof(unsigned), sizeof(unsigned), sizeof(struct getcpu_cache), 0, 0, 0},
-     NULL,
-     NULL},
+    {3, 0, 1, {sizeof(unsigned), sizeof(unsigned), sizeof(struct getcpu_cache), 0, 0, 0}, NULL, NULL},
     /* __NR_process_vm_readv = 310 */
     {6, 0, 0, {0, 0, 0, 0, 0, 0}, NULL, NULL},
     /* __NR_process_vm_writev = 311 */
