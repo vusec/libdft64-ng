@@ -70,7 +70,7 @@ void ins_stosq(INS ins);
 void ins_movlp(INS ins);
 void ins_movhp(INS ins);
 
-void ins_movlhp(INS ins);
+void ins_movlhps(INS ins);
 
 void ins_lea(INS ins);
 void ins_movbe_op(INS ins);

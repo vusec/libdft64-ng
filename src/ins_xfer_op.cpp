@@ -61,6 +61,13 @@ void PIN_FAST_ANALYSIS_CALL r2r_xfer_opq(THREADID tid, uint32_t dst,
   }
 }
 
+void PIN_FAST_ANALYSIS_CALL r2r_xfer_opq_h(THREADID tid, uint32_t dst,
+                                         uint32_t src) {
+  for (size_t i = 0; i < 8; i++) {
+    RTAG[dst][i + 8] = RTAG[src][i + 8];
+  }
+}
+
 void PIN_FAST_ANALYSIS_CALL r2r_xfer_opx(THREADID tid, uint32_t dst,
                                          uint32_t src) {
   for (size_t i = 0; i < 16; i++)
@@ -355,8 +362,8 @@ void ins_xfer_op(INS ins) {
           M2R_CALL(m2r_xfer_opx, reg_dst);
           break;
         default:
-          LOG_ERR("unsupported | %s | src memory operand size: %ld\n", INS_Disassemble(ins).c_str(), INS_MemoryOperandSize(ins, 0));
-          abort();
+          LOG_ERR("%s:%d: Unimplemented instruction '%s'\n", __FILE__, __LINE__, INS_Disassemble(ins).c_str());
+          return; //abort();
       }
       M2R_CALL(m2r_xfer_opx, reg_dst);
     } else if (REG_is_ymm(reg_dst)) {
@@ -558,10 +565,10 @@ void ins_movhp(INS ins) {
   }
 }
 
-void ins_movlhp(INS ins) { // TODO check if correct
+void ins_movlhps(INS ins) { // TODO check if correct
   if (INS_OperandIsMemory(ins, OP_0) || INS_OperandIsMemory(ins, OP_1)) {
-    puts("ins_movlhp illegal / unimplemented");
-    abort();
+    LOG_ERR("%s:%d: Unimplemented instruction '%s'\n", __FILE__, __LINE__, INS_Disassemble(ins).c_str());
+    return; //abort();
   }
 
   REG reg_dst = INS_OperandReg(ins, OP_0);
@@ -572,8 +579,8 @@ void ins_movlhp(INS ins) { // TODO check if correct
 
 void ins_punpcklqdq(INS ins) { // TODO check if correct
   if (INS_OperandIsMemory(ins, OP_0)) {
-    puts("ins_punpcklqdq illegal / unimplemented");
-    abort();
+    LOG_ERR("%s:%d: Unimplemented instruction '%s'\n", __FILE__, __LINE__, INS_Disassemble(ins).c_str());
+    return; //abort();
   }
 
   REG reg_dst = INS_OperandReg(ins, OP_0);
@@ -588,23 +595,28 @@ void ins_punpcklqdq(INS ins) { // TODO check if correct
 }
 
 void ins_vmovsd_op(INS ins) {
-  if (INS_OperandCount(ins) != 2) {
-    puts("ins_vmovsd_op ternary unimplemented");
-    abort();
-  }
-
-  if (INS_OperandIsMemory(ins, OP_0)) {
-    REG reg_src = INS_OperandReg(ins, OP_1);
-
-    M2R_CALL(r2m_xfer_opq, reg_src);
-  } else if (INS_OperandIsMemory(ins, OP_1)) {
+  if (INS_OperandCount(ins) == 3) {
     REG reg_dst = INS_OperandReg(ins, OP_0);
-
-    M2R_CALL(m2r_xfer_opq, reg_dst);
-  } else {
-    puts("ins_vmovsd_op unexpected format");
-    abort();
+    REG reg_src_h = INS_OperandReg(ins, OP_1);
+    REG reg_src_l = INS_OperandReg(ins, OP_2);
+    R2R_CALL(r2r_xfer_opq, reg_dst, reg_src_l); // DEST[63:0] := SRC2[63:0]
+    R2R_CALL(r2r_xfer_opq_h, reg_dst, reg_src_h); // DEST[127:64] := SRC1[127:64]
+    // TODO: DEST[MAXVL-1:128] := 0
+    return;
   }
+  else if (INS_OperandCount(ins) == 2) {
+    if (INS_OperandIsMemory(ins, OP_0)) {
+      REG reg_src = INS_OperandReg(ins, OP_1);
+      R2M_CALL(r2m_xfer_opq, reg_src);
+      return;
+    }
+    else if (INS_OperandIsMemory(ins, OP_1)) {
+      REG reg_dst = INS_OperandReg(ins, OP_0);
+      M2R_CALL(m2r_xfer_opq, reg_dst);
+      return;
+    }
+  }
+  LOG_ERR("%s:%d: Unimplemented instruction '%s'\n", __FILE__, __LINE__, INS_Disassemble(ins).c_str());
 }
 
 void ins_lea(INS ins) {

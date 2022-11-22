@@ -528,7 +528,7 @@ void ins_inspect(INS ins) {
     ins_punpcklqdq(ins);
     break;
   case XED_ICLASS_MOVLHPS:
-    ins_movlhp(ins);
+    ins_movlhps(ins);
     break;
   case XED_ICLASS_VZEROUPPER:
     ins_vzeroupper_op(ins);
