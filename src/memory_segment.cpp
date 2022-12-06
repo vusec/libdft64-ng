@@ -7,7 +7,7 @@ memory_segment::memory_segment(char *line) {
   int name_start = 0, name_end = 0;
   unsigned long addr_start, addr_end;
   char perms_str[8];
-  //printf("line: %s", line);
+  //LOG_OUT("line: %s", line);
 
   // parse string
   int ret = sscanf(line, "%lx-%lx %7s %lx %x:%x %lu %n%*[^\n]%n",
@@ -98,7 +98,7 @@ void memory_segment::print() {
            (isWriteable() ?  'W' : '-'),
            (isReadable() ?   'R' : '-'),
            _name.c_str());
-  printf("%s\n", info);
+  LOG_OUT("%s\n", info);
 }
 
 bool memory_segment::isBindable() {
