@@ -267,10 +267,10 @@ void memtaint_taint_all()
 	if (tagmap_all_tainted)
 		return;
 
+	LOG_OUT("%s:%d: Tainting all memory...\n", __FILE__, __LINE__);
+
 	memmap_init();
 	memtaint_callback();
-
-	LOG_OUT("%s: Tainting all memory...\n", __FILE__);
 
 	/* Throw away all the existing shadow memory pages. */
 	if (do_madvise(shadow_addr, shadow_size, MADV_DONTNEED) == -1)
@@ -283,5 +283,7 @@ void memtaint_taint_all()
 
 	/* Demand-page identity pages from now on. */
 	tagmap_all_tainted = 1;
+
+	LOG_OUT("%s:%d: Done.\n", __FILE__, __LINE__);
 }
 #endif /* LIBDFT_TAG_PTR */
