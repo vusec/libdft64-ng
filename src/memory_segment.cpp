@@ -10,11 +10,15 @@ memory_segment::memory_segment(char *line) {
   //printf("line: %s", line);
 
   // parse string
-  DIEIF(sscanf(line, "%lx-%lx %7s %lx %u:%u %lu %n%*[^\n]%n",
+  int ret = sscanf(line, "%lx-%lx %7s %lx %x:%x %lu %n%*[^\n]%n",
                      &addr_start, &addr_end, perms_str, &_offset,
                      &_deviceMajor, &_deviceMinor, &_inode,
-                     &name_start, &name_end) < 7,
-        "FAILED TO PARSE");
+                     &name_start, &name_end);
+  if (ret < 7) {
+    LOG_ERR("%s:%d: Error parsing. Expected >=7 but got %d. Line: %s",
+        __FILE__, __LINE__, ret, line);
+    return; // ¯\_(ツ)_/¯
+  }
 
   // convert addresses
   _startAddress = reinterpret_cast<void*>(addr_start);
