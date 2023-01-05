@@ -86,7 +86,7 @@ int libdft_init(bool enable_load_ptr_prop = false);
 void libdft_die(void);
 
 /* libdft options */
-int libdft_set_log_dir(std::string path);
+int libdft_set_log_dir(std::string path, bool log_per_thread);
 
 /* ins API */
 int ins_set_pre(ins_desc_t *, void (*)(INS));

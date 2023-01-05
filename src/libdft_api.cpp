@@ -437,14 +437,22 @@ int libdft_init(bool enable_load_ptr_prop) {
   return 0;
 }
 
-int libdft_set_log_dir(std::string path) {
+int libdft_set_log_dir(std::string path, bool log_per_thread) {
   // Write log files to specified directory
   std::string path_out = path + "/libdft.%s.out";
   std::string path_err = path + "/libdft.%s.err";
   std::string path_dbg = path + "/libdft.%s.dbg";
-  _libdft_out = new PinLogPerThread(path_out.c_str());
-  _libdft_err = new PinLogPerThread(path_err.c_str());
-  _libdft_dbg = new PinLogPerThread(path_dbg.c_str());
+  if (log_per_thread) {
+    // Log per thread
+    _libdft_out = new PinLogPerThread(path_out.c_str());
+    _libdft_err = new PinLogPerThread(path_err.c_str());
+    _libdft_dbg = new PinLogPerThread(path_dbg.c_str());
+  } else {
+    // Log per process
+    _libdft_out = new PinLogPerProcess(path_out.c_str());
+    _libdft_err = new PinLogPerProcess(path_err.c_str());
+    _libdft_dbg = new PinLogPerProcess(path_dbg.c_str());
+  }
   _log_to_std = false; // No longer logging to stdout/stderr
   return 0;
 }
