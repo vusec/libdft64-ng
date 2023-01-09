@@ -127,3 +127,24 @@ sset_tag_t tag_alloc<sset_tag_t>(ptroff_t offset)
   tag_setn(tag, 0, val);
   return tag;
 }
+
+/********************************************************
+tag vectors
+********************************************************/
+
+std::string tag_sprint(tagvec_t const &tv)
+{
+  if (tv.empty()) return "{}";
+
+  std::stringstream ss;
+  auto it = tv.begin();
+  ss << "{" << tag_sprint(*it);
+  std::advance(it, 1);
+  while (it != tv.end()) {
+    ss << ", " << tag_sprint(*it);
+    ++it;
+  }
+  ss << "}";
+
+  return ss.str();
+}

@@ -126,4 +126,10 @@ configured tag type
 ********************************************************/
 typedef LIBDFT_TAG_TYPE tag_t;
 
+/********************************************************
+tag vectors
+********************************************************/
+typedef std::vector<tag_t> tagvec_t;
+std::string tag_sprint(tagvec_t const &tv);
+
 #endif /* LIBDFT_TAG_TRAITS_H */

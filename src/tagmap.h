@@ -184,10 +184,19 @@ void tagmap_free(void);
 void tagmap_setb(ADDRINT addr, tag_t const &tag);
 void tagmap_setb_reg(THREADID tid, unsigned int reg_idx, unsigned int off,
                      tag_t const &tag);
+
+// tagmap_getb* returns a tag for a single byte
 tag_t tagmap_getb(ADDRINT addr);
 tag_t tagmap_getb_reg(THREADID tid, unsigned int reg_idx, unsigned int off);
+
+// tagmap_getn* returns a combined tag for several bytes
 tag_t tagmap_getn(ADDRINT addr, unsigned int size);
 tag_t tagmap_getn_reg(THREADID tid, unsigned int reg_idx, unsigned int n);
+
+// tagmap_getvec* returns a separate tag each byte
+tagvec_t *tagmap_getvec(ADDRINT addr, unsigned int size);
+tagvec_t *tagmap_getvec_reg(THREADID tid, unsigned int reg_idx, unsigned int n);
+
 void tagmap_clrb(ADDRINT addr);
 void tagmap_clrn(ADDRINT, UINT32);
 void taint_dump(ADDRINT addr);

@@ -236,6 +236,26 @@ tag_t tagmap_getn_reg(THREADID tid, unsigned int reg_idx, unsigned int n) {
   return ts;
 }
 
+tagvec_t *tagmap_getvec(ADDRINT addr, unsigned int n) {
+  std::vector<tag_t> *tv = new tagvec_t;
+  for (size_t i = 0; i < n; i++) {
+    const tag_t t = tagmap_getb(addr + i);
+    tv->push_back(t);
+    // LOG_DBG("[tagmap_getvec] %lu, t: %d, %s\n", i, t, tag_sprint(t).c_str());
+  }
+  return tv;
+}
+
+tagvec_t *tagmap_getvec_reg(THREADID tid, unsigned int reg_idx, unsigned int n) {
+  std::vector<tag_t> *tv = new tagvec_t;
+  for (size_t i = 0; i < n; i++) {
+    const tag_t t = tagmap_getb_reg(tid, reg_idx, i);
+    tv->push_back(t);
+    // LOG_DBG("[tagmap_getvec_reg] %lu, t: %d, %s\n", i, t, tag_sprint(t).c_str());
+  }
+  return tv;
+}
+
 void taint_dump(ADDRINT addr) {
   const tag_t t = tagmap_getb(addr);
   LOG_ERR("[taint_dump] addr = %p, tags = %s\n",
