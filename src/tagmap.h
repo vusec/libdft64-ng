@@ -193,9 +193,9 @@ tag_t tagmap_getb_reg(THREADID tid, unsigned int reg_idx, unsigned int off);
 tag_t tagmap_getn(ADDRINT addr, unsigned int size);
 tag_t tagmap_getn_reg(THREADID tid, unsigned int reg_idx, unsigned int n);
 
-// tagmap_getvec* returns a separate tag each byte
-tagvec_t *tagmap_getvec(ADDRINT addr, unsigned int size);
-tagvec_t *tagmap_getvec_reg(THREADID tid, unsigned int reg_idx, unsigned int n);
+// tagmap_getqarr* returns a separate tag each byte in a qword
+tagqarr_t tagmap_getqarr(ADDRINT addr);
+tagqarr_t tagmap_getqarr_reg(THREADID tid, unsigned int reg_idx, unsigned int n);
 
 void tagmap_clrb(ADDRINT addr);
 void tagmap_clrn(ADDRINT, UINT32);

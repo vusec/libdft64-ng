@@ -129,30 +129,26 @@ sset_tag_t tag_alloc<sset_tag_t>(ptroff_t offset)
 }
 
 /********************************************************
-tag vectors
+tag qword arrays
 ********************************************************/
 
-std::string tagvec_sprint(tagvec_t *tv)
+std::string tagqarr_sprint(tagqarr_t const &tarr)
 {
-  if (tv->empty() || tagvec_is_empty(tv)) return "{}";
+  if (tagqarr_is_empty(tarr)) return "{}";
 
   std::stringstream ss;
-  auto t = tv->begin();
-  ss << "{" << tag_sprint(*t);
-  std::advance(t, 1);
-  while (t != tv->end()) {
-    ss << ", " << tag_sprint(*t);
-    ++t;
-  }
+  tag_t t = tarr.tags[0];
+  ss << "{" << tag_sprint(t);
+  for (size_t i = 1; i < tarr.TAGQARR_LEN; i++) ss << ", " << tag_sprint(tarr.tags[i]);
   ss << "}";
 
   return ss.str();
 }
 
-bool tagvec_is_empty(tagvec_t *tv)
+bool tagqarr_is_empty(tagqarr_t const &tarr)
 {
-  for (auto t = tv->begin(); t != tv->end(); ++t) {
-    if (!tag_is_empty(*t)) return false;
+  for (size_t i = 0; i < tarr.TAGQARR_LEN; i++) {
+    if (!tag_is_empty(tarr.tags[i])) return false;
   }
   return true;
 }

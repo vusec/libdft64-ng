@@ -98,20 +98,20 @@ static void thread_alloc(THREADID tid, CONTEXT *ctx, INT32 flags, VOID *v) {
 
 // thread_free?
 
-static tagvec_t* sysenter_get_arg_taint(THREADID tid, unsigned arg_num) {
+static tagqarr_t sysenter_get_arg_taint(THREADID tid, unsigned arg_num) {
   switch (arg_num) {
   case SYSCALL_ARG0: // ARG0 in RDI
-    return tagmap_getvec_reg(tid, DFT_REG_RDI, sizeof(ADDRINT));
+    return tagmap_getqarr_reg(tid, DFT_REG_RDI, sizeof(ADDRINT));
   case SYSCALL_ARG1: // ARG1 in RSI
-    return tagmap_getvec_reg(tid, DFT_REG_RSI, sizeof(ADDRINT));
+    return tagmap_getqarr_reg(tid, DFT_REG_RSI, sizeof(ADDRINT));
   case SYSCALL_ARG2: // ARG2 in RDX
-    return tagmap_getvec_reg(tid, DFT_REG_RDX, sizeof(ADDRINT));
+    return tagmap_getqarr_reg(tid, DFT_REG_RDX, sizeof(ADDRINT));
   case SYSCALL_ARG3: // ARG3 in R10
-    return tagmap_getvec_reg(tid, DFT_REG_R10, sizeof(ADDRINT));
+    return tagmap_getqarr_reg(tid, DFT_REG_R10, sizeof(ADDRINT));
   case SYSCALL_ARG4: // ARG4 in R8
-    return tagmap_getvec_reg(tid, DFT_REG_R8, sizeof(ADDRINT));
+    return tagmap_getqarr_reg(tid, DFT_REG_R8, sizeof(ADDRINT));
   case SYSCALL_ARG5: // ARG5 in R9
-    return tagmap_getvec_reg(tid, DFT_REG_R9, sizeof(ADDRINT));
+    return tagmap_getqarr_reg(tid, DFT_REG_R9, sizeof(ADDRINT));
   }
   assert(false); // Unexpected number of args. Should never be reached.
 }
@@ -144,7 +144,7 @@ static void sysenter_save(THREADID tid, CONTEXT *ctx, SYSCALL_STANDARD std,
 
   /* pass the system call number and its taint to sysexit_save() */
   threads_ctx[tid].syscall_ctx.nr = syscall_nr;
-  threads_ctx[tid].syscall_ctx.nr_taint = tagmap_getvec_reg(tid, DFT_REG_RAX, sizeof(ADDRINT));
+  threads_ctx[tid].syscall_ctx.nr_taint = tagmap_getqarr_reg(tid, DFT_REG_RAX, sizeof(ADDRINT));
 
   /* save the arguments and arguments' taint */
   memset(&threads_ctx[tid].syscall_ctx.arg[0], 0, SYSCALL_ARG_NUM*sizeof(ADDRINT));
@@ -184,10 +184,6 @@ static void sysexit_save(THREADID tid, CONTEXT *ctx, SYSCALL_STANDARD std,
 
   /* get the syscall number */
   int syscall_nr = threads_ctx[tid].syscall_ctx.nr;
-
-  delete threads_ctx[tid].syscall_ctx.nr_taint;
-  for (i = 0; i < syscall_desc[syscall_nr].nargs; i++)
-    delete threads_ctx[tid].syscall_ctx.arg_taint[i];
 
   /* unknown syscall; optimized branch */
   if (unlikely(!is_valid_syscall_nr(syscall_nr))) {

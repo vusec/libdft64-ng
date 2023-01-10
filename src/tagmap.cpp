@@ -236,24 +236,19 @@ tag_t tagmap_getn_reg(THREADID tid, unsigned int reg_idx, unsigned int n) {
   return ts;
 }
 
-tagvec_t *tagmap_getvec(ADDRINT addr, unsigned int n) {
-  std::vector<tag_t> *tv = new tagvec_t;
-  for (size_t i = 0; i < n; i++) {
-    const tag_t t = tagmap_getb(addr + i);
-    tv->push_back(t);
-    // LOG_DBG("[tagmap_getvec] %lu, t: %d, %s\n", i, t, tag_sprint(t).c_str());
-  }
-  return tv;
+tagqarr_t tagmap_getqarr(ADDRINT addr) {
+  tagqarr_t tarr;
+  for (size_t i = 0; i < tarr.TAGQARR_LEN; i++) tarr.tags[i] = tagmap_getb(addr + i);
+  return tarr;
 }
 
-tagvec_t *tagmap_getvec_reg(THREADID tid, unsigned int reg_idx, unsigned int n) {
-  std::vector<tag_t> *tv = new tagvec_t;
-  for (size_t i = 0; i < n; i++) {
-    const tag_t t = tagmap_getb_reg(tid, reg_idx, i);
-    tv->push_back(t);
-    // LOG_DBG("[tagmap_getvec_reg] %lu, t: %d, %s\n", i, t, tag_sprint(t).c_str());
-  }
-  return tv;
+tagqarr_t tagmap_getqarr_reg(THREADID tid, unsigned int reg_idx, unsigned int n) {
+  tagqarr_t tarr;
+  // First, clear tarr
+  for (size_t i = 0; i < tarr.TAGQARR_LEN; i++) tarr.tags[i] = tag_traits<tag_t>::cleared_val;
+  // Then, fill tarr up to tarr.TAGQARR_LEN or n bytes (it may be e.g., a 4-byte reg)
+  for (size_t i = 0; i < tarr.TAGQARR_LEN && i < n; i++) tarr.tags[i] = tagmap_getb_reg(tid, reg_idx, i);
+  return tarr;
 }
 
 void taint_dump(ADDRINT addr) {

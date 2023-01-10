@@ -129,8 +129,13 @@ typedef LIBDFT_TAG_TYPE tag_t;
 /********************************************************
 tag vectors
 ********************************************************/
-typedef std::vector<tag_t> tagvec_t;
-std::string tagvec_sprint(tagvec_t *tv);
-bool tagvec_is_empty(tagvec_t *tv);
+typedef struct tagqarr_t
+{
+  static const unsigned TAGQARR_LEN = sizeof(ADDRINT);
+  tag_t tags[TAGQARR_LEN];
+} tagqarr_t;
+
+std::string tagqarr_sprint(tagqarr_t const &tarr);
+bool tagqarr_is_empty(tagqarr_t const &tarr);
 
 #endif /* LIBDFT_TAG_TRAITS_H */
