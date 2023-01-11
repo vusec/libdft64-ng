@@ -127,7 +127,7 @@ configured tag type
 typedef LIBDFT_TAG_TYPE tag_t;
 
 /********************************************************
-tag vectors
+tag arrays
 ********************************************************/
 typedef struct tagqarr_t
 {
@@ -135,7 +135,8 @@ typedef struct tagqarr_t
   tag_t tags[TAGQARR_LEN];
 } tagqarr_t;
 
-std::string tagqarr_sprint(tagqarr_t const &tarr);
 bool tagqarr_is_empty(tagqarr_t const &tarr);
+std::string tagqarr_sprint(tagqarr_t const &tarr);
+std::string tagn_sprint(ADDRINT addr, size_t len);
 
 #endif /* LIBDFT_TAG_TRAITS_H */
