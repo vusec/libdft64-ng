@@ -101,9 +101,15 @@ do_madvise(void *addr, size_t length, int advice)
 static procmap::memory_map * memmap;
 static bool taint_nonwritable_mem = true; // By default, taint non-writable memory
 static bool taint_stack_mem = true; // By default, taint stack memory
+static bool take_snapshot = false; // By default, don't take a snapshot
+static std::string snapshot_path = "";
 
 void memtaint_dont_taint_nonwritable_mem(void) { taint_nonwritable_mem = false; }
 void memtaint_dont_taint_stack_mem(void) { taint_stack_mem = false; }
+void memtaint_take_snapshot(std::string path) {
+	snapshot_path = path + "/core";
+	take_snapshot = true;
+}
 
 static void memmap_init(void) {
 	memmap = new procmap::memory_map();
@@ -271,6 +277,12 @@ void memtaint_taint_all()
 
 	memmap_init();
 	memtaint_callback();
+
+	if (take_snapshot) {
+		// We should take the snapshot after memtaint_callback() so that we capture any memory changes it may make
+		LOG_OUT("%s:%d: Taking memory snapshot..\n", __FILE__, __LINE__);
+		// TODO
+	}
 
 	/* Throw away all the existing shadow memory pages. */
 	if (do_madvise(shadow_addr, shadow_size, MADV_DONTNEED) == -1)
