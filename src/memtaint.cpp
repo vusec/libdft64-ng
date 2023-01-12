@@ -101,15 +101,10 @@ do_madvise(void *addr, size_t length, int advice)
 static procmap::memory_map * memmap;
 static bool taint_nonwritable_mem = true; // By default, taint non-writable memory
 static bool taint_stack_mem = true; // By default, taint stack memory
-static bool take_snapshot = false; // By default, don't take a snapshot
-static std::string snapshot_path = "";
 
 void memtaint_dont_taint_nonwritable_mem(void) { taint_nonwritable_mem = false; }
 void memtaint_dont_taint_stack_mem(void) { taint_stack_mem = false; }
-void memtaint_take_snapshot(std::string path) {
-	snapshot_path = path + "/core";
-	take_snapshot = true;
-}
+
 
 static void memmap_init(void) {
 	memmap = new procmap::memory_map();
@@ -129,6 +124,23 @@ page_is_taintable(void * addr)
 		}
 	}
 	return true;
+}
+
+// =====================================================================
+// Snapshotting
+// =====================================================================
+
+static bool snapshot_enabled = false; // By default, don't take a snapshot
+static std::string snapshot_path = "";
+
+void memtaint_enable_snapshot(std::string dir) {
+	snapshot_path = dir.empty() ? "core" : dir + "/core";
+	snapshot_enabled = true;
+}
+
+void memtaint_snapshot(void) {
+	LOG_OUT("%s:%d: Saving core dump of this process (PID %d) to '%s'\n", __FILE__, __LINE__, PIN_GetPid(), snapshot_path.c_str());
+	// TODO
 }
 
 // =====================================================================
@@ -278,10 +290,10 @@ void memtaint_taint_all()
 	memmap_init();
 	memtaint_callback();
 
-	if (take_snapshot) {
+	if (snapshot_enabled) {
 		// We should take the snapshot after memtaint_callback() so that we capture any memory changes it may make
-		LOG_OUT("%s:%d: Taking memory snapshot..\n", __FILE__, __LINE__);
-		// TODO
+		LOG_OUT("%s:%d: Taking memory snapshot...\n", __FILE__, __LINE__);
+		memtaint_snapshot();
 	}
 
 	/* Throw away all the existing shadow memory pages. */
