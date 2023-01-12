@@ -44,8 +44,16 @@
 #include <string.h>
 #include <sys/mman.h>
 
+// =====================================================================
+// Globals and helpers
+// =====================================================================
+
 tag_dir_t tag_dir;
 extern thread_ctx_t *threads_ctx;
+
+// =====================================================================
+// Tagmap setup
+// =====================================================================
 
 #ifdef LIBDFT_SHADOW
 
@@ -182,6 +190,10 @@ inline tag_t const *tag_dir_getb_as_ptr(tag_dir_t const &dir, ADDRINT addr) {
 }
 
 #endif /* End of !LIBDFT_SHADOW */
+
+// =====================================================================
+// Tagmap operators
+// =====================================================================
 
 // PIN_FAST_ANALYSIS_CALL
 void tagmap_setb(ADDRINT addr, tag_t const &tag) {
