@@ -47,6 +47,8 @@ thread_ctx_t *threads_ctx = NULL;
 /* ins descriptors */
 ins_desc_t ins_desc[XED_ICLASS_LAST];
 
+bool enable_load_ptr_prop = true;
+
 /* log variables */
 PinLog *_libdft_out = NULL;
 PinLog *_libdft_err = NULL;
@@ -389,7 +391,7 @@ libdft_cmd_img(IMG img, void *v)
  *
  * returns: 0 on success, 1 on error
  */
-int libdft_init(bool enable_load_ptr_prop) {
+int libdft_init(void) {
 
   // std::ios::sync_with_stdio(false);
 
@@ -434,6 +436,11 @@ int libdft_init(bool enable_load_ptr_prop) {
 	IMG_AddInstrumentFunction(libdft_cmd_img, NULL);
 
   /* success */
+  return 0;
+}
+
+int libdft_disable_load_ptr_prop(void) {
+  enable_load_ptr_prop = false;
   return 0;
 }
 

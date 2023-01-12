@@ -82,10 +82,11 @@ typedef struct {
 } ins_desc_t;
 
 /* libdft API */
-int libdft_init(bool enable_load_ptr_prop = false);
+int libdft_init(void);
 void libdft_die(void);
 
 /* libdft options */
+int libdft_disable_load_ptr_prop(void);
 int libdft_set_log_dir(std::string path, bool log_per_thread);
 
 /* ins API */
