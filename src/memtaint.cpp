@@ -52,6 +52,7 @@
 #include <string.h>
 #include <sys/mman.h>
 #include <fcntl.h>
+#include <sys/wait.h>
 
 // =====================================================================
 // Globals and helpers
@@ -94,6 +95,49 @@ do_madvise(void *addr, size_t length, int advice)
 	return syscall(__NR_madvise, addr, length, advice);
 }
 
+static int
+do_execve(const char *pathname, char *const argv[], char *const envp[])
+{
+	return syscall(__NR_execve, pathname, argv, envp);
+}
+
+static int
+do_fork(void)
+{
+	return syscall(__NR_fork);
+}
+
+#define	SHELL_PATH	"/bin/sh"	/* Path of the shell.  */
+#define	SHELL_NAME	"sh"		/* Name to give it.  */
+static int
+my_system(std::string s) {
+	LOG_DBG("%s:%d: Running cmd: %s -c '%s'...\n", __FILE__, __LINE__, SHELL_NAME, s.c_str());
+	pid_t pid = do_fork();
+	if (pid == 0) {
+		// Child
+		const char *new_argv[4];
+		new_argv[0] = SHELL_NAME;
+		new_argv[1] = "-c";
+		new_argv[2] = s.c_str();
+		new_argv[3] = NULL;
+		const char *new_envp[1];
+		new_envp[0] = NULL;
+		do_execve(SHELL_PATH, (char *const *) new_argv, (char *const *) new_envp);
+		exit(0);
+	}
+	else if (pid < 0) {
+		// Fork failed
+		LOG_ERR("Fork failed!\n");
+		exit(-1);
+	} else {
+		// Parent
+		int status;
+		if (TEMP_FAILURE_RETRY (waitpid (pid, &status, 0)) != pid) status = -1;
+	}
+	LOG_DBG("%s:%d: Done running cmd!\n", __FILE__, __LINE__);
+	return 0;
+}
+
 // =====================================================================
 // Page checking
 // =====================================================================
@@ -131,16 +175,16 @@ page_is_taintable(void * addr)
 // =====================================================================
 
 static bool snapshot_enabled = false; // By default, don't take a snapshot
-static std::string snapshot_path = "";
+static std::string snapshot_path;
 
 void memtaint_enable_snapshot(std::string dir) {
-	snapshot_path = dir.empty() ? "core" : dir + "/core";
+	assert(!dir.empty()); // TODO: We're asserting that the dir string is not empty, but we should really be asserting that dir exists
+	snapshot_path = dir + "/libdft-core";
 	snapshot_enabled = true;
 }
 
 void memtaint_snapshot(void) {
-	LOG_OUT("%s:%d: Saving core dump of this process (PID %d) to '%s'\n", __FILE__, __LINE__, PIN_GetPid(), snapshot_path.c_str());
-	// TODO
+	my_system("/usr/bin/gcore -o " + snapshot_path + " " + std::to_string(PIN_GetPid()));
 }
 
 // =====================================================================
@@ -308,6 +352,6 @@ void memtaint_taint_all()
 	/* Demand-page identity pages from now on. */
 	tagmap_all_tainted = 1;
 
-	LOG_OUT("%s:%d: Done.\n", __FILE__, __LINE__);
+	LOG_OUT("%s:%d: Done tainting all memory.\n", __FILE__, __LINE__);
 }
 #endif /* LIBDFT_TAG_PTR */
