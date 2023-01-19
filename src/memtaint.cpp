@@ -176,6 +176,7 @@ page_is_taintable(void * addr)
 
 static bool snapshot_enabled = false; // By default, don't take a snapshot
 static std::string snapshot_path;
+std::string snapshot_path_real = "";
 
 void memtaint_enable_snapshot(std::string filename) {
 	assert(!filename.empty()); // TODO: We should also assert that filename's directory exists
@@ -185,6 +186,8 @@ void memtaint_enable_snapshot(std::string filename) {
 
 void memtaint_snapshot(void) {
 	my_system("/usr/bin/gcore -o " + snapshot_path + " " + std::to_string(PIN_GetPid()));
+	// Contrary to its docs, it looks like gcore appends a PID to the filename even if only one PID is given
+	snapshot_path_real = snapshot_path + "." + std::to_string(PIN_GetPid());
 }
 
 // =====================================================================
