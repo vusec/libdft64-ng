@@ -103,19 +103,19 @@ template <>
 std::string tag_sprint(sset_tag_t const &tag)
 {
   if (tag_is_empty(tag))
-    return "{}";
+    return "[]";
   else if (tag_is_full(tag))
-    return "FULL";
+    return "\"FULL\"";
 
   std::stringstream ss;
-  ss << "{";
+  ss << "[";
   tag_sprint_ptroff(ss, tag_getn(tag, 0));
   for (int i = 1; tag_hasn(tag, i); i++)
   {
     ss << ", ";
     tag_sprint_ptroff(ss, tag_getn(tag, i));
   }
-  ss << "}";
+  ss << "]";
 
   return ss.str();
 }
