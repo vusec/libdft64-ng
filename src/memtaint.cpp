@@ -177,9 +177,9 @@ page_is_taintable(void * addr)
 static bool snapshot_enabled = false; // By default, don't take a snapshot
 static std::string snapshot_path;
 
-void memtaint_enable_snapshot(std::string dir) {
-	assert(!dir.empty()); // TODO: We're asserting that the dir string is not empty, but we should really be asserting that dir exists
-	snapshot_path = dir + "/libdft-core";
+void memtaint_enable_snapshot(std::string filename) {
+	assert(!filename.empty()); // TODO: We should also assert that filename's directory exists
+	snapshot_path = filename;
 	snapshot_enabled = true;
 }
 
