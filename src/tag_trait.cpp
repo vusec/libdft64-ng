@@ -143,7 +143,7 @@ bool tagqarr_is_empty(tagqarr_t const &tarr)
 
 std::string tagqarr_sprint(tagqarr_t const &tarr)
 {
-  if (tagqarr_is_empty(tarr)) return "{}";
+  if (tagqarr_is_empty(tarr)) return "[]";
 
   std::stringstream ss;
   tag_t t = tarr.tags[0];
