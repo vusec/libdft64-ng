@@ -143,8 +143,6 @@ bool tagqarr_is_empty(tagqarr_t const &tarr)
 
 std::string tagqarr_sprint(tagqarr_t const &tarr)
 {
-  if (tagqarr_is_empty(tarr)) return "[]";
-
   std::stringstream ss;
   tag_t t = tarr.tags[0];
   ss << "[" << tag_sprint(t);
@@ -156,8 +154,6 @@ std::string tagqarr_sprint(tagqarr_t const &tarr)
 
 std::string tagn_sprint(ADDRINT addr, size_t len)
 {
-  if (len <= 0 || tag_is_empty(tagmap_getn(addr, len))) return "[]";
-
   std::string s = "[" + tag_sprint(tagmap_getb(addr));
   for (size_t i = 1; i < len; i++)
     s += ", " + tag_sprint(tagmap_getb(addr + i));
