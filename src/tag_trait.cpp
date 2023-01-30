@@ -3,9 +3,17 @@
 #include "tagmap.h"
 #include <string.h>
 
+static bool tag_trait_sprint_decimal = false;
+void tag_trait_set_print_decimal(void) { tag_trait_sprint_decimal = true; }
+
 void tag_sprint_ptroff(std::stringstream &ss, ptroff_t const &v) {
   if (v == sset_tag_t::LEN) {
     ss << "LEN";
+    return;
+  }
+  if (tag_trait_sprint_decimal) {
+    if (tag_is_file_offset(v)) ss << "+" << std::dec << v;
+    else ss << std::dec << (uint64_t) tag_to_ptr(v);
     return;
   }
   ss << std::hex << std::setfill('0');
