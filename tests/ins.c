@@ -100,6 +100,16 @@ void test_mul_m2r(uint64_t *tainted) {
 	: : [atainted] "m" (tainted) : "rax", "rdx", "rdi", "memory");
 }
 
+void test_bitwiseand_clear(uint64_t tainted32) {
+  asm(	NOPS
+	"mov %[atainted32], %%rdi;"		// rdi = bytes 0, 1, 2, and 3 should be tainted
+	"mov $0xffff0000ff0000ff, %%rax;"
+	"and %%rax, %%rdi;" 			// rdi = bytes 0 and 3 should be tainted
+	"call __libdft_getval_taint;"
+	NOPS
+	: : [atainted32] "r" (tainted32) : "rdi");
+}
+
 int main(int argc, char** argv) {
   uint8_t tainted8 = 1; __libdft_set_taint(&tainted8, 34, 1);
   uint64_t tainted16 = 1; __libdft_set_taint(&tainted16, 34, 2);
@@ -134,9 +144,10 @@ int main(int argc, char** argv) {
   printf(EXP "0, taint: [[+34], [+34], [+34], [+34], [+34], [+34], [+34], [+34]]\n");
   test_mul_m2r(&tainted64);
 
-  //printf(BANNER);
-  //printf(EXP "v: 0x12000078, lbl: 34, ...\n");
-  //test_mul_m2r(&tainted64);
+  printf(BANNER);
+  uint64_t tainted32and = 0x12345678deadbeef; __libdft_set_taint(&tainted32, 34, 4);
+  printf(EXP "val: 1311673395196199151, taint: [[+34], [], [], [+34], [], [], [], []]\n"); // 0x12340000de0000ef == 1311673395196199151
+  test_bitwiseand_clear(tainted32and);
 
   // TODO: Test e.g., "mov $0, %%di;" to make sure only the lower 2 bytes propagate taint
 
