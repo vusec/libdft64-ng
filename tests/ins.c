@@ -109,7 +109,7 @@ void test_bitwiseand_clear(uint64_t tainted32) {
 	"and %%rax, %%rdi;" 			// rdi = bytes 0 and 3 should be tainted
 	"call __libdft_getval_taint;"
 	NOPS
-	: : [atainted32] "r" (tainted32) : "rdi");
+	: : [atainted32] "r" (tainted32) : "rdi", "rax");
 }
 
 int main(int argc, char** argv) {
@@ -143,8 +143,8 @@ int main(int argc, char** argv) {
   test_mul_r2r(tainted64);
 
   printf(BANNER);
-  printf(EXP "1234, taint: [[+34], [+34], [+34], [+34], [+34], [+34], [+34], [+34]]\n");
-  printf(EXP "0, taint: [[+34], [+34], [+34], [+34], [+34], [+34], [+34], [+34]]\n");
+  printf(EXP "val: 1234, taint: [[+34], [+34], [+34], [+34], [+34], [+34], [+34], [+34]]\n");
+  printf(EXP "val: 0, taint: [[+34], [+34], [+34], [+34], [+34], [+34], [+34], [+34]]\n");
   test_mul_m2r(&tainted64);
 
   printf(BANNER);
