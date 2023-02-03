@@ -12,7 +12,6 @@
 void __attribute__((noinline)) __libdft_set_taint(void *p, unsigned int v, size_t n) { barrier(); }
 void __attribute__((noinline)) __libdft_get_taint(void *p) { barrier(); }
 void __attribute__((noinline)) __libdft_getval_taint(uint64_t v) { barrier(); }
-void __attribute__((noinline)) __libdft_getvaln_taint(uint64_t v) { barrier(); }
 
 void test_mov_32bit_extend_const(uint64_t tainted) {
   asm(	NOPS
@@ -29,7 +28,7 @@ void test_movsx_8u_to_16(uint8_t tainted) {
 	"xor %%rdi, %%rdi;"		// clear rdi
 	"mov %[atainted], %%ah;"	// ah = should be tainted (upper 8 of rax)
 	"movsx %%ah, %%di;" 		// dil = should be tainted, dih = should be cleared
-	"call __libdft_getvaln_taint;"
+	"call __libdft_getval_taint;"
 	NOPS
 	: : [atainted] "r" (tainted) : "rdi", "rax");
 }
@@ -48,13 +47,13 @@ void test_push(uint64_t tainted64, uint16_t tainted16) {
   asm(	NOPS
 	"push %[atainted64];"
 	"pop %%rdi;"
-	"call __libdft_getvaln_taint;" // rdi (all 8) = should be tainted
+	"call __libdft_getval_taint;" // rdi (all 8) = should be tainted
 	"pushq $22;"
 	"pop %%rdi;"
 	"call __libdft_getval_taint;" // rdi (all 8) = should be untainted
 	"push %[atainted16];"
 	"pop %%di;"
-	"call __libdft_getvaln_taint;" // di (lower 2) = should be tainted
+	"call __libdft_getval_taint;" // di (lower 2) = should be tainted
 	NOPS
 	: : [atainted64] "r" (tainted64), [atainted16] "r" (tainted16) : "rdi");
 }
@@ -108,36 +107,41 @@ int main(int argc, char** argv) {
   uint64_t tainted64 = 1; __libdft_set_taint(&tainted64, 34, 8);
 
   printf(BANNER);
-  printf(EXP "v: 0, lbl: 0, ...\n");
+  printf(EXP "val: 0, taint: [[], [], [], [], [], [], [], []]\n");
   test_mov_32bit_extend_const(tainted64);
 
   printf(BANNER);
-  printf(EXP " byte: 0, v: 1, lbl: 34, ...\n");
-  printf(EXP " bytes: 1--7, v: 0, lbl: 0, ...\n");
+  printf(EXP "val: 1, taint: [[+34], [], [], [], [], [], [], []]\n");
   test_movsx_8u_to_16(tainted8);
 
   printf(BANNER);
-  printf(EXP "v: 1234, lbl: 0, ...\n");
+  printf(EXP "val: 1234, taint: [[], [], [], [], [], [], [], []]\n");
   test_mov_32bit_extend_reg(tainted64, 1234);
 
   printf(BANNER);
-  printf(EXP " byte: 0--7, ..., lbl: 34, ...\n");
-  printf(EXP "v: 22, lbl: 0, ...\n");
-  printf(EXP " bytes: 0--1, ..., lbl: 34, ...\n");
-  printf(EXP " bytes: 2--7, ..., lbl: 0, ...\n");
+  printf(EXP "val: 1, taint: [[+34], [+34], [+34], [+34], [+34], [+34], [+34], [+34]]\n");
+  printf(EXP "val: 22, taint: [[], [], [], [], [], [], [], []]\n");
+  printf(EXP "val: 1, taint: [[+34], [+34], [], [], [], [], [], []]\n");
   test_push(tainted64, tainted16);
 
   printf(BANNER);
-  printf(EXP "v: 1234, lbl: 34, ...\n");
-  printf(EXP "v: 0, lbl: 34, ...\n");
+  printf(EXP "val: 1234, taint: [[+34], [+34], [+34], [+34], [+34], [+34], [+34], [+34]]\n");
+  printf(EXP "val: 0, taint: [[+34], [+34], [+34], [+34], [+34], [+34], [+34], [+34]]\n");
   test_mul_r2r(tainted64);
 
   printf(BANNER);
-  printf(EXP "v: 1234, lbl: 34, ...\n");
-  printf(EXP "v: 0, lbl: 34, ...\n");
+  printf(EXP "1234, taint: [[+34], [+34], [+34], [+34], [+34], [+34], [+34], [+34]]\n");
+  printf(EXP "0, taint: [[+34], [+34], [+34], [+34], [+34], [+34], [+34], [+34]]\n");
   test_mul_m2r(&tainted64);
 
+  //printf(BANNER);
+  //printf(EXP "v: 0x12000078, lbl: 34, ...\n");
+  //test_mul_m2r(&tainted64);
+
   // TODO: Test e.g., "mov $0, %%di;" to make sure only the lower 2 bytes propagate taint
+
+  printf(BANNER);
+  printf("*** TODO: Make a script to check whether the expected output and the actual output are the same ***\n");
 
   return 0;
 }

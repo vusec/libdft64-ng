@@ -6,24 +6,14 @@
 #include <iostream>
 
 VOID TestGetHandler(void *p) {
-  uint64_t v = *((uint64_t *)p);
-  tag_t t = tagmap_getn((ADDRINT)p, 8);
-  printf("[PIN][GET] addr: %p, v: %lu, lb: %d, taint: %s\n", p, v, tag_to_id(t),
-         tag_sprint(t).c_str());
+  uint64_t val = *((uint64_t *)p);
+  tagqarr_t tarr = tagmap_getqarr((ADDRINT)p);
+  printf("[PIN][GET] addr: %p, val: %lu, taint: %s\n", p, val, tagqarr_sprint(tarr).c_str());
 }
 
 VOID TestGetValHandler(THREADID tid, uint64_t v) {
-  tag_t t = tagmap_getn_reg(tid, X64_ARG0_REG, 8);
-  printf("[PIN][GETVAL] v: %lu, lb: %d, taint: %s\n", v, tag_to_id(t),
-         tag_sprint(t).c_str());
-}
-
-VOID TestGetValNHandler(THREADID tid, uint64_t v) {
-  for (int i = 0; i < 8; i++) {
-    tag_t t = tagmap_getb_reg(tid, X64_ARG0_REG, i);
-    printf("[PIN][GETVALN] byte: %d, v: %u, lb: %d, taint: %s\n", i, ((uint8_t*)(&v))[i], tag_to_id(t),
-          tag_sprint(t).c_str());
-  }
+  tagqarr_t tarr = tagmap_getqarr_reg(tid, X64_ARG0_REG, 8);
+  printf("[PIN][GETVAL] val: %lu, taint: %s\n", v, tagqarr_sprint(tarr).c_str());
 }
 
 VOID TestSetHandler(void *p, unsigned int v, size_t n) {
@@ -31,7 +21,7 @@ VOID TestSetHandler(void *p, unsigned int v, size_t n) {
   for (size_t i = 0; i < n; i++) {
     tagmap_setb((ADDRINT)p + i, t);
   }
-  printf("[PIN][SET] addr: %p, lb: %d, taint: %d\n", p, tag_to_id(t), v);
+  printf("[PIN][SET] addr: %p, taint: %s\n", p, tagn_sprint((ADDRINT)p,n).c_str());
 }
 
 VOID EntryPoint(VOID *v) {
@@ -64,16 +54,6 @@ VOID EntryPoint(VOID *v) {
                      IARG_END);
       RTN_Close(test_getval_rtn);
     }
-
-    RTN test_getvaln_rtn = RTN_FindByName(img, "__libdft_getvaln_taint");
-    if (RTN_Valid(test_getvaln_rtn)) {
-      RTN_Open(test_getvaln_rtn);
-
-      RTN_InsertCall(test_getvaln_rtn, IPOINT_BEFORE, (AFUNPTR)TestGetValNHandler,
-                     IARG_THREAD_ID, IARG_FUNCARG_ENTRYPOINT_VALUE, 0,
-                     IARG_END);
-      RTN_Close(test_getvaln_rtn);
-    }
   }
 }
 
@@ -96,6 +76,9 @@ int main(int argc, char *argv[]) {
   PIN_AddApplicationStartFunction(EntryPoint, 0);
 
   hook_file_syscall();
+
+  void tag_trait_set_print_decimal(void);
+  tag_trait_set_print_decimal();
 
   PIN_StartProgram();
 
