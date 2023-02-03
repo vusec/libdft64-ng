@@ -131,12 +131,15 @@ tag arrays
 ********************************************************/
 typedef struct tagqarr_t
 {
-  static const unsigned TAGQARR_LEN = sizeof(ADDRINT);
+  static const unsigned TAGQARR_LEN = 8;
+  static const unsigned TAGDARR_LEN = 4;
   tag_t tags[TAGQARR_LEN];
 } tagqarr_t;
 
 bool tagqarr_is_empty(tagqarr_t const &tarr);
+bool tagdarr_is_empty(tagqarr_t const &tarr);
 std::string tagqarr_sprint(tagqarr_t const &tarr);
+std::string tagdarr_sprint(tagqarr_t const &tarr);
 std::string tagn_sprint(ADDRINT addr, size_t len);
 
 #endif /* LIBDFT_TAG_TRAITS_H */

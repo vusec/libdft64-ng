@@ -149,12 +149,33 @@ bool tagqarr_is_empty(tagqarr_t const &tarr)
   return true;
 }
 
+// Only checks the bottom 4 bytes of the tagqarr_t (rather than all 8)
+bool tagdarr_is_empty(tagqarr_t const &tarr)
+{
+  for (size_t i = 0; i < tarr.TAGDARR_LEN; i++) {
+    if (!tag_is_empty(tarr.tags[i])) return false;
+  }
+  return true;
+}
+
 std::string tagqarr_sprint(tagqarr_t const &tarr)
 {
   std::stringstream ss;
   tag_t t = tarr.tags[0];
   ss << "[" << tag_sprint(t);
   for (size_t i = 1; i < tarr.TAGQARR_LEN; i++) ss << ", " << tag_sprint(tarr.tags[i]);
+  ss << "]";
+
+  return ss.str();
+}
+
+// Only logs the bottom 4 bytes of the tagqarr_t (rather than all 8)
+std::string tagdarr_sprint(tagqarr_t const &tarr)
+{
+  std::stringstream ss;
+  tag_t t = tarr.tags[0];
+  ss << "[" << tag_sprint(t);
+  for (size_t i = 1; i < tarr.TAGDARR_LEN; i++) ss << ", " << tag_sprint(tarr.tags[i]);
   ss << "]";
 
   return ss.str();
