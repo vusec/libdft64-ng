@@ -21,7 +21,7 @@ VOID TestSetHandler(void *p, unsigned int v, size_t n) {
   for (size_t i = 0; i < n; i++) {
     tagmap_setb((ADDRINT)p + i, t);
   }
-  printf("[PIN][SET] addr: %p, taint: %s\n", p, tagn_sprint((ADDRINT)p,n).c_str());
+  //printf("[PIN][SET] addr: %p, taint: %s\n", p, tagn_sprint((ADDRINT)p,n).c_str());
 }
 
 VOID EntryPoint(VOID *v) {
