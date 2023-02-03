@@ -4,7 +4,7 @@
 #include <string.h>
 
 static bool tag_trait_sprint_decimal = false;
-void tag_trait_set_print_decimal(void) { tag_trait_sprint_decimal = true; }
+void tag_trait_set_print_decimal(bool b) { tag_trait_sprint_decimal = b; }
 
 void tag_sprint_ptroff(std::stringstream &ss, ptroff_t const &v) {
   if (v == sset_tag_t::LEN) {

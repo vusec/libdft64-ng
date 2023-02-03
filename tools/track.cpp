@@ -24,6 +24,11 @@ VOID TestSetHandler(void *p, unsigned int v, size_t n) {
   //printf("[PIN][SET] addr: %p, taint: %s\n", p, tagn_sprint((ADDRINT)p,n).c_str());
 }
 
+VOID TestSetPrintDecimal(bool b) {
+  void tag_trait_set_print_decimal(bool b);
+  tag_trait_set_print_decimal(b);
+}
+
 VOID EntryPoint(VOID *v) {
 
   for (IMG img = APP_ImgHead(); IMG_Valid(img); img = IMG_Next(img)) {
@@ -54,6 +59,14 @@ VOID EntryPoint(VOID *v) {
                      IARG_END);
       RTN_Close(test_getval_rtn);
     }
+
+    RTN test_setprintdecimal_rtn = RTN_FindByName(img, "__libdft_set_print_decimal");
+    if (RTN_Valid(test_setprintdecimal_rtn)) {
+      RTN_Open(test_setprintdecimal_rtn);
+      RTN_InsertCall(test_setprintdecimal_rtn, IPOINT_BEFORE, (AFUNPTR)TestSetPrintDecimal,
+                     IARG_FUNCARG_ENTRYPOINT_VALUE, 0, IARG_END);
+      RTN_Close(test_setprintdecimal_rtn);
+    }
   }
 }
 
@@ -76,9 +89,6 @@ int main(int argc, char *argv[]) {
   PIN_AddApplicationStartFunction(EntryPoint, 0);
 
   hook_file_syscall();
-
-  void tag_trait_set_print_decimal(void);
-  tag_trait_set_print_decimal();
 
   PIN_StartProgram();
 

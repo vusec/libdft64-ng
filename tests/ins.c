@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include "../src/libdft_cmd.h"
 
 // A few nops makes it easier to find the inline asm snippet
@@ -12,6 +13,7 @@
 void __attribute__((noinline)) __libdft_set_taint(void *p, unsigned int v, size_t n) { barrier(); }
 void __attribute__((noinline)) __libdft_get_taint(void *p) { barrier(); }
 void __attribute__((noinline)) __libdft_getval_taint(uint64_t v) { barrier(); }
+void __attribute__((noinline)) __libdft_set_print_decimal(bool b) { barrier(); }
 
 void test_mov_32bit_extend_const(uint64_t tainted) {
   asm(	NOPS
@@ -111,6 +113,7 @@ void test_bitwiseand_clear(uint64_t tainted32) {
 }
 
 int main(int argc, char** argv) {
+  __libdft_set_print_decimal(true);
   uint8_t tainted8 = 1; __libdft_set_taint(&tainted8, 34, 1);
   uint64_t tainted16 = 1; __libdft_set_taint(&tainted16, 34, 2);
   uint64_t tainted32 = 1; __libdft_set_taint(&tainted32, 34, 4);
