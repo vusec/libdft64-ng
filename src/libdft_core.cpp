@@ -7,6 +7,7 @@
 #include "ins_unitary_op.h"
 #include "ins_xchg_op.h"
 #include "ins_xfer_op.h"
+#include "ins_masking_op.h"
 
 /* threads context */
 extern thread_ctx_t *threads_ctx;
@@ -225,7 +226,7 @@ void ins_inspect(INS ins) {
     ins_binary_op(ins);
     break;
   case XED_ICLASS_AND:
-    ins_binary_and(ins);
+    ins_masking_and(ins);
   case XED_ICLASS_XOR:
   case XED_ICLASS_SBB:
   case XED_ICLASS_SUB:

@@ -317,11 +317,6 @@ inline size_t REG_INDX(REG reg) {
   INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)fn, IARG_FAST_ANALYSIS_CALL,     \
                  IARG_THREAD_ID, IARG_UINT32, REG_INDX(dst), IARG_END)
 
-#define R_CALL_N(fn, dst, n)                                                   \
-  INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)fn, IARG_FAST_ANALYSIS_CALL,     \
-                 IARG_THREAD_ID, IARG_UINT32, REG_INDX(dst), IARG_UINT32, n,   \
-                 IARG_END)
-
 #define M_CALL_W(fn)                                                           \
   INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)fn, IARG_FAST_ANALYSIS_CALL,     \
                  IARG_THREAD_ID, IARG_MEMORYWRITE_EA, IARG_END)
@@ -364,11 +359,6 @@ inline size_t REG_INDX(REG reg) {
 #define M_CLEAR_N(n)                                                           \
   INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)tagmap_clrn,                     \
                  IARG_FAST_ANALYSIS_CALL, IARG_MEMORYWRITE_EA, IARG_UINT32, n, \
-                 IARG_END);
-
-#define M_CLEAR_BYTE(b)                                                        \
-  INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)m_clr_byteat,                    \
-                 IARG_FAST_ANALYSIS_CALL, IARG_MEMORYWRITE_EA, IARG_UINT32, b, \
                  IARG_END);
 
 #define RR2R_CALL(fn, dst, src1, src2)                                         \

@@ -3,6 +3,5 @@
 #include "pin.H"
 
 void ins_binary_op(INS ins);
-void ins_binary_and(INS ins);
 
 #endif
