@@ -8,7 +8,7 @@
 VOID TestGetHandler(void *p) {
   uint64_t val = *((uint64_t *)p);
   tagqarr_t tarr = tagmap_getqarr((ADDRINT)p);
-  printf("[PIN][GET] addr: %p, val: %lu, taint: %s\n", p, val, tagqarr_sprint(tarr).c_str());
+  printf("[PIN][GET]    addr: %p, val: %lu, taint: %s\n", p, val, tagqarr_sprint(tarr).c_str());
 }
 
 VOID TestGetValHandler(THREADID tid, uint64_t v) {
