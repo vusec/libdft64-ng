@@ -130,7 +130,7 @@ void test_bitwiseand_clear_64reg(uint64_t tainted32) {
 	: : [atainted32] "r" (tainted32) : "rdi", "rax");
 }
 
-void test_loadptrprop(uint64_t *tainted64) {
+void test_loadptrprop64(uint64_t *tainted64) {
   asm(	NOPS
 	"mov %[atainted64], %%rax;"
 	"movq (%%rax), %%rdi;"
@@ -139,8 +139,19 @@ void test_loadptrprop(uint64_t *tainted64) {
 	: : [atainted64] "m" (tainted64) : "rdi", "rax");
 }
 
+void test_loadptrprop32(uint32_t *tainted32) {
+  asm(	NOPS
+	"xor %%rdi, %%rdi;"		// clear rdi
+	"mov %[atainted32], %%rax;"
+	"mov (%%rax), %%edi;"
+	"call __libdft_getval_taint;"
+	NOPS
+	: : [atainted32] "m" (tainted32) : "rdi", "rax");
+}
+
 int main(int argc, char** argv) {
   __libdft_set_print_decimal(true);
+  size_t i;
   uint8_t tainted8 = 1; __libdft_set_taint(&tainted8, 34, 1);
   uint64_t tainted16 = 1; __libdft_set_taint(&tainted16, 34, 2);
   uint64_t tainted32 = 1; __libdft_set_taint(&tainted32, 34, 4);
@@ -192,13 +203,17 @@ int main(int argc, char** argv) {
   printf(BANNER);
   uint64_t tainted64_lpp = 0x12345678deadbeef; __libdft_set_taint(&tainted64_lpp, 34, 8);
   uint64_t *ptainted64_lpp = &tainted64_lpp;
-  // Taint the lower 4 bytes of the pointer differently
-  __libdft_set_taint(&ptainted64_lpp, 100, 1);
-  __libdft_set_taint((uint64_t*)((uint64_t)&ptainted64_lpp+1), 101, 1);
-  __libdft_set_taint((uint64_t*)((uint64_t)&ptainted64_lpp+2), 102, 1);
-  __libdft_set_taint((uint64_t*)((uint64_t)&ptainted64_lpp+3), 103, 1);
+  for (i = 0; i < 4; i++) __libdft_set_taint((uint32_t*)((uint64_t)&ptainted64_lpp+i), 100+i, 1); // Taint the lower 4 bytes of the pointer differently
   printf(EXP "TBD, depending on how we want to implement load pointer propagation...\n");
-  test_loadptrprop(ptainted64_lpp);
+  test_loadptrprop64(ptainted64_lpp);
+
+  printf(BANNER);
+  uint32_t tainted32_lpp = 0x12345678; __libdft_set_taint(&tainted32_lpp, 34, 4);
+  uint32_t *ptainted32_lpp = &tainted32_lpp;
+  for (i = 0; i < 8; i++) __libdft_set_taint((uint32_t*)((uint64_t)&ptainted32_lpp+i), 100+i, 1); // Taint all 8 bytes of the pointer differently
+  printf(EXP "TBD, depending on how we want to implement load pointer propagation...\n");
+  //__libdft_getval_taint((uint64_t)ptainted32_lpp);
+  test_loadptrprop32(ptainted32_lpp);
 
   // TODO: Test e.g., "mov $0, %%di;" to make sure only the lower 2 bytes propagate taint
 
