@@ -221,12 +221,15 @@ void ins_inspect(INS ins) {
   case XED_ICLASS_ADDPD:
   case XED_ICLASS_ADDSD:
   case XED_ICLASS_ADDSS:
-  case XED_ICLASS_OR:
   case XED_ICLASS_POR:
     ins_binary_op(ins);
     break;
   case XED_ICLASS_AND:
     ins_masking_and(ins);
+    break;
+  case XED_ICLASS_OR:
+    ins_masking_or(ins);
+    break;
   case XED_ICLASS_XOR:
   case XED_ICLASS_SBB:
   case XED_ICLASS_SUB:
