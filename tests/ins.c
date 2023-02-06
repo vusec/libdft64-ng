@@ -196,7 +196,7 @@ int main(int argc, char** argv) {
   test_bitwiseand_clear_64imm2mem(&tainted64and);
 
   printf(BANNER);
-  uint64_t tainted32and = 0x12345678deadbeef; __libdft_set_taint(&tainted32, 34, 4);
+  uint64_t tainted32and = 0x12345678deadbeef; __libdft_set_taint(&tainted32and, 34, 4);
   printf(EXP "val: 1311673395196199151, taint: [[+34], [], [], [+34], [], [], [], []]\n"); // 0x12340000de0000ef == 1311673395196199151
   test_bitwiseand_clear_64reg(tainted32and);
 
