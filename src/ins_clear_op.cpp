@@ -69,6 +69,14 @@ static void PIN_FAST_ANALYSIS_CALL r_clry_upper_all(THREADID tid) {
   }
 }
 
+static void PIN_FAST_ANALYSIS_CALL r_clr_byteat(THREADID tid, uint32_t reg, uint32_t b) {
+  RTAG[reg][b] = tag_traits<tag_t>::cleared_val;
+}
+
+static void PIN_FAST_ANALYSIS_CALL m_clr_byteat(ADDRINT addr, UINT32 offset) {
+  tagmap_clrb(addr+offset);
+}
+
 void ins_clear_op(INS ins) {
   if (INS_OperandIsMemory(ins, OP_0)) {
     INT32 n = INS_OperandWidth(ins, OP_0) / 8;
@@ -129,4 +137,12 @@ void ins_clear_op_l4(INS ins) {
 void ins_vzeroupper_op(INS ins) {
   INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)r_clry_upper_all, IARG_FAST_ANALYSIS_CALL,
                  IARG_THREAD_ID, IARG_END);
+}
+
+void ins_clear_reg_byteat(INS ins, REG reg_dst, UINT32 b) {
+  R_CALL_N(r_clr_byteat, reg_dst, b);
+}
+
+void ins_clear_mem_byteat(INS ins, UINT32 b) {
+  M_CLEAR_BYTE(b);
 }

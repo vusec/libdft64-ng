@@ -1,5 +1,6 @@
 #include "ins_binary_op.h"
 #include "ins_helper.h"
+#include "ins_clear_op.h"
 
 /* threads context */
 extern thread_ctx_t *threads_ctx;
@@ -249,4 +250,24 @@ void ins_binary_op(INS ins) {
       R2M_CALL(r2m_binary_opb_l, reg_src);
     }
   }
+}
+
+void ins_binary_and(INS ins) {
+  if (INS_OperandIsImmediate(ins, OP_1)) {
+    UINT64 imm = INS_OperandImmediate(ins, OP_1);
+    size_t opsize = INS_OperandSize(ins, OP_0);
+    UINT64 tmp = imm;
+    for (size_t b = 0; b < opsize; b++, tmp >>= 8) {
+      if (!(tmp & 0xff)) {
+        //LOG_ERR("%s:%d: zero on byte %lu/%lu, imm=0x%016lx, ins='%s'\n", __FILE__, __LINE__, b, opsize-1, imm, INS_Disassemble(ins).c_str());
+        if (INS_OperandIsMemory(ins, OP_0)) {
+          ins_clear_mem_byteat(ins, b);
+        } else {
+          ins_clear_reg_byteat(ins, INS_OperandReg(ins, OP_0), b);
+        }
+      }
+    }
+    return;
+  }
+  ins_binary_op(ins);
 }
