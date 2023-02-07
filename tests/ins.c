@@ -193,6 +193,16 @@ void test_masking_or16_m2r(uint16_t* tainted16) {
 	: : [atainted16] "m" (tainted16) : "rdi", "rax");
 }
 
+void test_masking_or32_r2m(uint64_t* tainted32) {
+  asm(	NOPS
+	"mov $0x00ff00ff, %%eax;"
+	"mov %[atainted32], %%rdi;"
+	"or %%eax, (%%rdi);"
+	"call __libdft_get_taint;"
+	NOPS
+	: [atainted32] "+m" (tainted32) : : "rdi", "rax", "memory");
+}
+
 void test_masking() {
   TEST_BANNER("test_masking_and64_i2r");
   uint64_t tainted64and = 0x12345678deadbeef; __libdft_set_taint(&tainted64and, 34, 8);
@@ -214,7 +224,10 @@ void test_masking() {
   printf(EXP "val: 65332, taint: [[+34], [], [], [], [], [], [], []]\n"); // 0xff34 == 65332
   test_masking_or16_m2r(&tainted16);
 
-  TEST_BANNER("test_masking_or16_r2m"); // TODO
+  TEST_BANNER("test_masking_or32_r2m");
+  uint64_t tainted32 = 0x0000000012345678; __libdft_set_taint(&tainted32, 34, 4);
+  printf(EXP "addr: %p, val: 318723839, taint: [[], [+34], [], [+34], [], [], [], []]\n", &tainted32); // 0x12ff56ff == 318723839
+  test_masking_or32_r2m(&tainted32);
 }
 
 // =====================================================================
