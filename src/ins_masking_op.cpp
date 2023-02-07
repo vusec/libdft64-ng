@@ -6,34 +6,42 @@ extern thread_ctx_t *threads_ctx;
 
 static void PIN_FAST_ANALYSIS_CALL i2m_masking(THREADID tid, UINT32 size, ADDRINT dst_addr, UINT64 imm, UINT32 exp) {
   for (size_t i = 0; i < size; i++, imm >>= 8) {
-    // If the imm equals exp, then clear taint on the output
-    if ((imm & 0xff) == exp) tagmap_setb(dst_addr + i, tag_traits<tag_t>::cleared_val);
+    // If the imm equals exp OR the dst is untainted and equals exp, then clear taint on the output
+    if ((imm & 0xff) == exp ||
+        (tag_is_empty(tagmap_getb(dst_addr + i)) && (*(UINT8*)(dst_addr + i) == exp)))
+      tagmap_setb(dst_addr + i, tag_traits<tag_t>::cleared_val);
   }
 }
 
-static void PIN_FAST_ANALYSIS_CALL i2r_masking(THREADID tid, UINT32 size, UINT32 dst_reg, UINT64 imm, UINT32 exp) {
+static void PIN_FAST_ANALYSIS_CALL i2r_masking(THREADID tid, UINT32 size, UINT32 dst_reg, ADDRINT dst_val, UINT64 imm, UINT32 exp) {
   tag_t *dst_tags = RTAG[dst_reg];
-  for (size_t i = 0; i < size; i++, imm >>= 8) {
-    // If the imm equals exp, then clear taint on the output
-    if ((imm & 0xff) == exp) dst_tags[i] = tag_traits<tag_t>::cleared_val;
+  for (size_t i = 0; i < size; i++, imm >>= 8, dst_val >>= 8) {
+    // If the imm equals exp OR the dst is untainted and equals exp, then clear taint on the output
+    if ((imm & 0xff) == exp ||
+        (tag_is_empty(dst_tags[i]) && (dst_val & 0xff) == exp))
+      dst_tags[i] = tag_traits<tag_t>::cleared_val;
   }
 }
 
-static void PIN_FAST_ANALYSIS_CALL r2r_masking(THREADID tid, UINT32 size, UINT32 dst_reg, UINT32 src_reg, ADDRINT src_val, UINT32 exp) {
+static void PIN_FAST_ANALYSIS_CALL r2r_masking(THREADID tid, UINT32 size, UINT32 dst_reg, ADDRINT dst_val, UINT32 src_reg, ADDRINT src_val, UINT32 exp) {
   tag_t *src_tags = RTAG[src_reg];
   tag_t *dst_tags = RTAG[dst_reg];
-  for (size_t i = 0; i < size; i++, src_val >>= 8) {
-    // If the src is untainted and equals exp, then clear taint on the output
-    if (tag_is_empty(src_tags[i]) && (src_val & 0xff) == exp) dst_tags[i] = tag_traits<tag_t>::cleared_val;
+  for (size_t i = 0; i < size; i++, src_val >>= 8, dst_val >>= 8) {
+    // If the src is untainted and equals exp OR the dst is untainted and equals exp, then clear taint on the output
+    if ((tag_is_empty(src_tags[i]) && (src_val & 0xff) == exp) ||
+        (tag_is_empty(dst_tags[i]) && (dst_val & 0xff) == exp))
+      dst_tags[i] = tag_traits<tag_t>::cleared_val;
     else dst_tags[i] = tag_combine(dst_tags[i], src_tags[i]);
   }
 }
 
-static void PIN_FAST_ANALYSIS_CALL m2r_masking(THREADID tid, UINT32 size, UINT32 dst_reg, ADDRINT src_addr, UINT32 exp) {
+static void PIN_FAST_ANALYSIS_CALL m2r_masking(THREADID tid, UINT32 size, UINT32 dst_reg, ADDRINT dst_val, ADDRINT src_addr, UINT32 exp) {
   tag_t *dst_tags = RTAG[dst_reg];
-  for (size_t i = 0; i < size; i++) {
-    // If the src is untainted and equals exp, then clear taint on the output
-    if (tag_is_empty(tagmap_getb(src_addr + i)) && (*(UINT8*)(src_addr + i) == exp)) dst_tags[i] = tag_traits<tag_t>::cleared_val;
+  for (size_t i = 0; i < size; i++, dst_val >>= 8) {
+    // If the src is untainted and equals exp OR the dst is untainted and equals exp, then clear taint on the output
+    if ((tag_is_empty(tagmap_getb(src_addr + i)) && (*(UINT8*)(src_addr + i) == exp)) ||
+        (tag_is_empty(dst_tags[i]) && (dst_val & 0xff) == exp))
+      dst_tags[i] = tag_traits<tag_t>::cleared_val;
     else dst_tags[i] = tag_combine(dst_tags[i], MTAG(src_addr + i));
   }
 }
@@ -41,8 +49,10 @@ static void PIN_FAST_ANALYSIS_CALL m2r_masking(THREADID tid, UINT32 size, UINT32
 static void PIN_FAST_ANALYSIS_CALL r2m_masking(THREADID tid, UINT32 size, ADDRINT dst_addr, UINT32 src_reg, ADDRINT src_val, UINT32 exp) {
   tag_t *src_tags = RTAG[src_reg];
   for (size_t i = 0; i < size; i++, src_val >>= 8) {
-    // If the src is untainted and equals exp, then clear taint on the output
-    if (tag_is_empty(src_tags[i]) && (src_val & 0xff) == exp) tagmap_setb(dst_addr + i, tag_traits<tag_t>::cleared_val);
+    // If the src is untainted and equals exp OR the dst is untainted and equals exp, then clear taint on the output
+    if ((tag_is_empty(src_tags[i]) && (src_val & 0xff) == exp) ||
+        (tag_is_empty(tagmap_getb(dst_addr + i)) && (*(UINT8*)(dst_addr + i) == exp)))
+      tagmap_setb(dst_addr + i, tag_traits<tag_t>::cleared_val);
     else tagmap_setb(dst_addr + i, tag_combine(MTAG(dst_addr + i), src_tags[i]));
   }
 }
@@ -60,6 +70,7 @@ static void ins_masking_handler(INS ins, UINT32 exp) {
     REG reg_dst = INS_OperandReg(ins, OP_0);
     INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)i2r_masking, IARG_FAST_ANALYSIS_CALL, IARG_THREAD_ID, IARG_UINT32, INS_OperandSize(ins, OP_0),
               IARG_UINT32, REG_INDX(reg_dst),
+              IARG_REG_VALUE, reg_dst,
               IARG_UINT64, INS_OperandImmediate(ins, OP_1),
               IARG_UINT32, exp, IARG_END);
   }
@@ -69,6 +80,7 @@ static void ins_masking_handler(INS ins, UINT32 exp) {
     REG reg_src = INS_OperandReg(ins, OP_1);
     INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)r2r_masking, IARG_FAST_ANALYSIS_CALL, IARG_THREAD_ID, IARG_UINT32, INS_OperandSize(ins, OP_0),
                   IARG_UINT32, REG_INDX(reg_dst),
+                  IARG_REG_VALUE, reg_dst,
                   IARG_UINT32, REG_INDX(reg_src),
                   IARG_REG_VALUE, reg_src,
                   IARG_UINT32, exp, IARG_END);
@@ -78,6 +90,7 @@ static void ins_masking_handler(INS ins, UINT32 exp) {
     REG reg_dst = INS_OperandReg(ins, OP_0);
     INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)m2r_masking, IARG_FAST_ANALYSIS_CALL, IARG_THREAD_ID, IARG_UINT32, INS_OperandSize(ins, OP_0),
                   IARG_UINT32, REG_INDX(reg_dst),
+                  IARG_REG_VALUE, reg_dst,
                   IARG_MEMORYREAD_EA,
                   IARG_UINT32, exp, IARG_END);
   }
