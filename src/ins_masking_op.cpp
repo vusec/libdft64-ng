@@ -19,7 +19,7 @@ static void PIN_FAST_ANALYSIS_CALL i2r_masking(THREADID tid, UINT32 size, UINT32
   }
 }
 
-static void PIN_FAST_ANALYSIS_CALL r2r_masking(THREADID tid, UINT32 size, UINT32 dst_reg, UINT32 src_reg, REG src_val, UINT32 exp) {
+static void PIN_FAST_ANALYSIS_CALL r2r_masking(THREADID tid, UINT32 size, UINT32 dst_reg, UINT32 src_reg, ADDRINT src_val, UINT32 exp) {
   tag_t *src_tags = RTAG[src_reg];
   tag_t *dst_tags = RTAG[dst_reg];
   for (size_t i = 0; i < size; i++, src_val >>= 8) {
@@ -38,7 +38,7 @@ static void PIN_FAST_ANALYSIS_CALL m2r_masking(THREADID tid, UINT32 size, UINT32
   }
 }
 
-static void PIN_FAST_ANALYSIS_CALL r2m_masking(THREADID tid, UINT32 size, ADDRINT dst_addr, UINT32 src_reg, REG src_val, UINT32 exp) {
+static void PIN_FAST_ANALYSIS_CALL r2m_masking(THREADID tid, UINT32 size, ADDRINT dst_addr, UINT32 src_reg, ADDRINT src_val, UINT32 exp) {
   tag_t *src_tags = RTAG[src_reg];
   for (size_t i = 0; i < size; i++, src_val >>= 8) {
     // If the src is untainted and equals exp, then clear taint on the output
