@@ -18,7 +18,8 @@
 void __attribute__((noinline)) __libdft_set_taint(void *p, unsigned int v, size_t n) { barrier(); }
 void __attribute__((noinline)) __libdft_get_taint(void *p) { barrier(); }
 void __attribute__((noinline)) __libdft_getval_taint(uint64_t v) { barrier(); }
-void __attribute__((noinline)) __libdft_set_print_decimal(bool b) { barrier(); }
+void __attribute__((noinline)) __libdft_set_tag_print_decimal(bool b) { barrier(); }
+void __attribute__((noinline)) __libdft_set_val_print_decimal(bool b) { barrier(); }
 
 // =====================================================================
 
@@ -53,6 +54,7 @@ void test_mov_32bit_extend_reg(uint64_t tainted, uint32_t untainted) {
 
 void test_signextend() {
   TAINTED64; TAINTED8;
+  __libdft_set_val_print_decimal(true);
 
   TEST_BANNER("test_mov_32bit_extend_const");
   printf(EXP "val: 0, taint: [[], [], [], [], [], [], [], []]\n");
@@ -87,6 +89,7 @@ void test_push_var(uint64_t tainted64, uint16_t tainted16) {
 
 void test_push() {
   TAINTED64; TAINTED16;
+  __libdft_set_val_print_decimal(true);
 
   TEST_BANNER("test_push");
   printf(EXP "val: 1, taint: [[+34], [+34], [+34], [+34], [+34], [+34], [+34], [+34]]\n");
@@ -141,6 +144,7 @@ void test_mul_m2r(uint64_t *tainted) {
 
 void test_mul() {
   TAINTED64;
+  __libdft_set_val_print_decimal(true);
 
   TEST_BANNER("test_mul_r2r");
   printf(EXP "val: 1234, taint: [[+34], [+34], [+34], [+34], [+34], [+34], [+34], [+34]]\n");
@@ -204,29 +208,30 @@ void test_masking_or32_r2m(uint64_t* tainted32) {
 }
 
 void test_masking() {
+  __libdft_set_val_print_decimal(false);
   TEST_BANNER("test_masking_and64_i2r");
   uint64_t tainted64and = 0x12345678deadbeef; __libdft_set_taint(&tainted64and, 34, 8);
-  printf(EXP "val: 1311768468592311808, taint: [[], [+34], [], [+34], [+34], [+34], [+34], [+34]]\n"); // 0x12345678de00be00 == 1311768468592311808
+  printf(EXP "val: 0x12345678de00be00, taint: [[], [+34], [], [+34], [+34], [+34], [+34], [+34]]\n");
   test_masking_and64_i2r(tainted64and);
 
   TEST_BANNER("test_masking_and64_i2m");
   tainted64and = 0x12345678deadbeef; __libdft_set_taint(&tainted64and, 34, 8);
-  printf(EXP "addr: %p, val: 11337967, taint: [[+34], [], [+34], [], [], [], [], []]\n", &tainted64and); // 0x0000000000ad00ef == 11337967
+  printf(EXP "addr: %p, val: 0xad00ef, taint: [[+34], [], [+34], [], [], [], [], []]\n", &tainted64and);
   test_masking_and64_i2m(&tainted64and);
 
   TEST_BANNER("test_masking_and64_r2r");
   uint64_t tainted32and = 0x12345678deadbeef; __libdft_set_taint(&tainted32and, 34, 4);
-  printf(EXP "val: 1311673395196199151, taint: [[+34], [], [], [+34], [], [], [], []]\n"); // 0x12340000de0000ef == 1311673395196199151
+  printf(EXP "val: 0x12340000de0000ef, taint: [[+34], [], [], [+34], [], [], [], []]\n");
   test_masking_and64_r2r(tainted32and);
 
   TEST_BANNER("test_masking_or16_m2r");
   uint16_t tainted16 = 0x1234; __libdft_set_taint(&tainted16, 34, 2);
-  printf(EXP "val: 65332, taint: [[+34], [], [], [], [], [], [], []]\n"); // 0xff34 == 65332
+  printf(EXP "val: 0xff34, taint: [[+34], [], [], [], [], [], [], []]\n");
   test_masking_or16_m2r(&tainted16);
 
   TEST_BANNER("test_masking_or32_r2m");
   uint64_t tainted32 = 0x0000000012345678; __libdft_set_taint(&tainted32, 34, 4);
-  printf(EXP "addr: %p, val: 318723839, taint: [[], [+34], [], [+34], [], [], [], []]\n", &tainted32); // 0x12ff56ff == 318723839
+  printf(EXP "addr: %p, val: 0x12ff56ff, taint: [[], [+34], [], [+34], [], [], [], []]\n", &tainted32);
   test_masking_or32_r2m(&tainted32);
 }
 
@@ -253,6 +258,7 @@ void test_loadptrprop32(uint32_t *tainted32) {
 
 void test_loadptrprop() {
   size_t i;
+  __libdft_set_val_print_decimal(false);
 
   TEST_BANNER("test_loadptrprop64");
   uint64_t tainted64_lpp = 0x12345678deadbeef; __libdft_set_taint(&tainted64_lpp, 34, 8);
@@ -274,7 +280,7 @@ void test_loadptrprop() {
 // =====================================================================
 
 int main(int argc, char** argv) {
-  __libdft_set_print_decimal(true);
+  __libdft_set_tag_print_decimal(true);
 
   test_signextend();
   test_push();

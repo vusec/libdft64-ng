@@ -5,15 +5,19 @@
 #include "syscall_hook.h"
 #include <iostream>
 
+static bool val_print_decimal = true;
+
 VOID TestGetHandler(void *p) {
   uint64_t val = *((uint64_t *)p);
   tagqarr_t tarr = tagmap_getqarr((ADDRINT)p);
-  printf("[PIN][GET]    addr: %p, val: %lu, taint: %s\n", p, val, tagqarr_sprint(tarr).c_str());
+  if (val_print_decimal) printf("[PIN][GET]    addr: %p, val: %lu, taint: %s\n", p, val, tagqarr_sprint(tarr).c_str());
+  else                   printf("[PIN][GET]    addr: %p, val: 0x%lx, taint: %s\n", p, val, tagqarr_sprint(tarr).c_str());
 }
 
 VOID TestGetValHandler(THREADID tid, uint64_t v) {
   tagqarr_t tarr = tagmap_getqarr_reg(tid, X64_ARG0_REG, 8);
-  printf("[PIN][GETVAL] val: %lu, taint: %s\n", v, tagqarr_sprint(tarr).c_str());
+  if (val_print_decimal) printf("[PIN][GETVAL] val: %lu, taint: %s\n", v, tagqarr_sprint(tarr).c_str());
+  else                   printf("[PIN][GETVAL] val: 0x%lx, taint: %s\n", v, tagqarr_sprint(tarr).c_str());
 }
 
 VOID TestSetHandler(void *p, unsigned int v, size_t n) {
@@ -24,9 +28,13 @@ VOID TestSetHandler(void *p, unsigned int v, size_t n) {
   //printf("[PIN][SET] addr: %p, taint: %s\n", p, tagn_sprint((ADDRINT)p,n).c_str());
 }
 
-VOID TestSetPrintDecimal(bool b) {
+VOID TestSetTagPrintDecimal(bool b) {
   void tag_trait_set_print_decimal(bool b);
   tag_trait_set_print_decimal(b);
+}
+
+VOID TestSetValPrintDecimal(bool b) {
+  val_print_decimal = b;
 }
 
 VOID EntryPoint(VOID *v) {
@@ -60,12 +68,20 @@ VOID EntryPoint(VOID *v) {
       RTN_Close(test_getval_rtn);
     }
 
-    RTN test_setprintdecimal_rtn = RTN_FindByName(img, "__libdft_set_print_decimal");
-    if (RTN_Valid(test_setprintdecimal_rtn)) {
-      RTN_Open(test_setprintdecimal_rtn);
-      RTN_InsertCall(test_setprintdecimal_rtn, IPOINT_BEFORE, (AFUNPTR)TestSetPrintDecimal,
+    RTN test_settagprintdecimal_rtn = RTN_FindByName(img, "__libdft_set_tag_print_decimal");
+    if (RTN_Valid(test_settagprintdecimal_rtn)) {
+      RTN_Open(test_settagprintdecimal_rtn);
+      RTN_InsertCall(test_settagprintdecimal_rtn, IPOINT_BEFORE, (AFUNPTR)TestSetTagPrintDecimal,
                      IARG_FUNCARG_ENTRYPOINT_VALUE, 0, IARG_END);
-      RTN_Close(test_setprintdecimal_rtn);
+      RTN_Close(test_settagprintdecimal_rtn);
+    }
+
+    RTN test_setvalprintdecimal_rtn = RTN_FindByName(img, "__libdft_set_val_print_decimal");
+    if (RTN_Valid(test_setvalprintdecimal_rtn)) {
+      RTN_Open(test_setvalprintdecimal_rtn);
+      RTN_InsertCall(test_setvalprintdecimal_rtn, IPOINT_BEFORE, (AFUNPTR)TestSetValPrintDecimal,
+                     IARG_FUNCARG_ENTRYPOINT_VALUE, 0, IARG_END);
+      RTN_Close(test_setvalprintdecimal_rtn);
     }
   }
 }
