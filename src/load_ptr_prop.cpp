@@ -41,6 +41,9 @@ static void memop_deref_before(THREADID tid, ADDRINT taddr, UINT32 base_reg, UIN
     tag_t tag = tagmap_getb(taddr + i);
     stored_tag->tag[i] = tag;
 
+    // Only propagate the pointer's taint if the loaded value is untainted
+    if (!tag_is_empty(tag)) continue;
+
     // FIXME: It doesn't make sense to do this byte-by-byte. E.g., if base==0x7fff1234, it doesn't make sense
     //    to only combine tagof(0x34) (i.e., byte 0 of base) with tagof(*0x7fff1234) (i.e., byte 0 of the data).
     //    Instead tagof(*0x7fff1234) depends on the ENTIRE pointer, not just the lowest byte of it.
