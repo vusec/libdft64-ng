@@ -261,9 +261,9 @@ void test_loadptrprop() {
   __libdft_set_val_print_decimal(false);
 
   TEST_BANNER("test_loadptrprop64");
-  uint64_t tainted64_lpp = 0x12345678deadbeef; __libdft_set_taint(&tainted64_lpp, 34, 8);
+  uint64_t tainted64_lpp = 0x12345678deadbeef; __libdft_set_taint(&tainted64_lpp, 34, 4); // Taint only the lower 4 bytes of the value
   uint64_t *ptainted64_lpp = &tainted64_lpp;
-  for (i = 0; i < 4; i++) __libdft_set_taint((uint32_t*)((uint64_t)&ptainted64_lpp+i), 100+i, 1); // Taint the lower 4 bytes of the pointer differently
+  for (i = 0; i < 8; i++) __libdft_set_taint((uint32_t*)((uint64_t)&ptainted64_lpp+i), 100+i, 1); // Taint all 8 bytes of the pointer differently
   printf(EXP "TBD, depending on how we want to implement load pointer propagation...\n");
   test_loadptrprop64(ptainted64_lpp);
 
