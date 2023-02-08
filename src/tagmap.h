@@ -35,6 +35,7 @@
 
 #include "pin.H"
 #include "tag_traits.h"
+#include "debug.h"
 #include <utility>
 
 #define PAGE_SIZE 4096
