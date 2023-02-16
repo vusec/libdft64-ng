@@ -3,6 +3,7 @@
 #include "libdft_api.h"
 #include "pin.H"
 #include "syscall_hook.h"
+#include "tag_traits.h"
 #include <iostream>
 
 static bool val_print_decimal = true;
@@ -29,7 +30,6 @@ VOID TestSetHandler(void *p, unsigned int v, size_t n) {
 }
 
 VOID TestSetTagPrintDecimal(bool b) {
-  void tag_trait_set_print_decimal(bool b);
   tag_trait_set_print_decimal(b);
 }
 

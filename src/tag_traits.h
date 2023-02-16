@@ -4,6 +4,7 @@
 #include <string>
 #include "config.h"
 
+void tag_trait_set_print_decimal(bool b);
 void tag_sprint_ptroff(std::stringstream &ss, ptroff_t const &v);
 
 template <typename T> struct tag_traits {};

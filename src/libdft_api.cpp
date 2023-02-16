@@ -38,6 +38,7 @@
 #include "syscall_hook.h"
 #include "libdft_cmd.h"
 #include "load_ptr_prop.h"
+#include "memtaint.h"
 
 /* threads context counter */
 static size_t tctx_ct = 0;
@@ -346,7 +347,6 @@ libdft_cmd_handler(ADDRINT cmd, ADDRINT arg1, const CONTEXT *ctxt)
 		break;
 #ifdef LIBDFT_TAG_PTR
 	case CMD_TAINT_MEM_ALL:
-		extern void memtaint_taint_all();
 		memtaint_taint_all();
 		break;
 #endif
