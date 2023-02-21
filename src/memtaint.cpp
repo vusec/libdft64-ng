@@ -323,16 +323,26 @@ void memtaint_init(void *addr, size_t len)
 }
 
 // No callback by default
+static bool memtaint_only_do_callback = false;
+static bool memtaint_callback_done = false;
 static void nop() { }
-static void(*memtaint_callback)() = nop;
-void memtaint_set_callback(void(*new_callback)()) { memtaint_callback = new_callback; }
+static void(*__memtaint_callback)() = nop;
+static void memtaint_callback(void) { __memtaint_callback(); memtaint_callback_done = true; }
+void memtaint_set_callback(void(*new_callback)()) { __memtaint_callback = new_callback; }
+void memtaint_set_only_do_callback(bool b) { memtaint_only_do_callback = b; }
 
 void memtaint_taint_all()
 {
+	if (memtaint_only_do_callback) {
+		if (memtaint_callback_done) return;
+		memtaint_callback();
+		return;
+	}
+
 	if (tagmap_all_tainted)
 		return;
 
-	LOG_OUT("%s:%d: Tainting all memory...\n", __FILE__, __LINE__);
+	LOG_OUT("%s:%d: Tainting memory...\n", __FILE__, __LINE__);
 
 	memmap_init();
 	memtaint_callback();
@@ -355,6 +365,6 @@ void memtaint_taint_all()
 	/* Demand-page identity pages from now on. */
 	tagmap_all_tainted = 1;
 
-	LOG_OUT("%s:%d: Done tainting all memory.\n", __FILE__, __LINE__);
+	LOG_OUT("%s:%d: Done tainting memory.\n", __FILE__, __LINE__);
 }
 #endif /* LIBDFT_TAG_PTR */
