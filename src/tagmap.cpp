@@ -6,7 +6,7 @@
  * at Columbia University, New York, NY, USA, in June 2010.
  *
  * Georgios Portokalidis <porto@cs.columbia.edu> contributed to the
- * optimized implementation of tagmap_setn() and tagmap_clrn()
+ * optimized implementation of tagmap_clrn()
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -220,6 +220,15 @@ void tagmap_setb(ADDRINT addr, tag_t const &tag) {
 void tagmap_setb_reg(THREADID tid, unsigned int reg_idx, unsigned int off,
                      tag_t const &tag) {
   threads_ctx[tid].vcpu.gpr[reg_idx][off] = tag;
+}
+
+void tagmap_setn(ADDRINT addr, unsigned int size, tag_t const &tag) {
+  for (size_t i = 0; i < size; i++) tagmap_setb(addr + i, tag);
+}
+
+void tagmap_setn_reg(THREADID tid, unsigned int reg_idx, unsigned int n,
+                     tag_t const &tag) {
+  for (size_t i = 0; i < n; i++) tagmap_setb_reg(tid, reg_idx, i, tag);
 }
 
 tag_t tagmap_getb(ADDRINT addr) { return *tag_dir_getb_as_ptr(tag_dir, addr); }

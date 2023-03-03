@@ -185,6 +185,9 @@ void tagmap_free(void);
 void tagmap_setb(ADDRINT addr, tag_t const &tag);
 void tagmap_setb_reg(THREADID tid, unsigned int reg_idx, unsigned int off,
                      tag_t const &tag);
+void tagmap_setn(ADDRINT addr, unsigned int size, tag_t const &tag);
+void tagmap_setn_reg(THREADID tid, unsigned int reg_idx, unsigned int n,
+                     tag_t const &tag);
 
 // tagmap_getb* returns a tag for a single byte
 tag_t tagmap_getb(ADDRINT addr);
