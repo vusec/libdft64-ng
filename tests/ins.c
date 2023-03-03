@@ -61,7 +61,7 @@ void test_signextend() {
   test_mov_32bit_extend_const(tainted64);
 
   TEST_BANNER("test_movsx_8u_to_16");
-  printf(EXP "val: 1, taint: [[+34], [], [], [], [], [], [], []]\n");
+  printf(EXP "val: 1, taint: [[34], [], [], [], [], [], [], []]\n");
   test_movsx_8u_to_16(tainted8);
 
   TEST_BANNER("test_mov_32bit_extend_reg");
@@ -92,9 +92,9 @@ void test_push() {
   __libdft_set_val_print_decimal(true);
 
   TEST_BANNER("test_push");
-  printf(EXP "val: 1, taint: [[+34], [+34], [+34], [+34], [+34], [+34], [+34], [+34]]\n");
+  printf(EXP "val: 1, taint: [[34], [34], [34], [34], [34], [34], [34], [34]]\n");
   printf(EXP "val: 22, taint: [[], [], [], [], [], [], [], []]\n");
-  printf(EXP "val: 1, taint: [[+34], [+34], [], [], [], [], [], []]\n");
+  printf(EXP "val: 1, taint: [[34], [34], [], [], [], [], [], []]\n");
   test_push_var(tainted64, tainted16);
 }
 
@@ -147,13 +147,13 @@ void test_mul() {
   __libdft_set_val_print_decimal(true);
 
   TEST_BANNER("test_mul_r2r");
-  printf(EXP "val: 1234, taint: [[+34], [+34], [+34], [+34], [+34], [+34], [+34], [+34]]\n");
-  printf(EXP "val: 0, taint: [[+34], [+34], [+34], [+34], [+34], [+34], [+34], [+34]]\n");
+  printf(EXP "val: 1234, taint: [[34], [34], [34], [34], [34], [34], [34], [34]]\n");
+  printf(EXP "val: 0, taint: [[34], [34], [34], [34], [34], [34], [34], [34]]\n");
   test_mul_r2r(tainted64);
 
   TEST_BANNER("test_mul_m2r");
-  printf(EXP "val: 1234, taint: [[+34], [+34], [+34], [+34], [+34], [+34], [+34], [+34]]\n");
-  printf(EXP "val: 0, taint: [[+34], [+34], [+34], [+34], [+34], [+34], [+34], [+34]]\n");
+  printf(EXP "val: 1234, taint: [[34], [34], [34], [34], [34], [34], [34], [34]]\n");
+  printf(EXP "val: 0, taint: [[34], [34], [34], [34], [34], [34], [34], [34]]\n");
   test_mul_m2r(&tainted64);
 }
 
@@ -211,27 +211,27 @@ void test_masking() {
   __libdft_set_val_print_decimal(false);
   TEST_BANNER("test_masking_and64_i2r");
   uint64_t tainted64and = 0x12345678deadbeef; __libdft_set_taint(&tainted64and, 34, 8);
-  printf(EXP "val: 0x12345678de00be00, taint: [[], [+34], [], [+34], [+34], [+34], [+34], [+34]]\n");
+  printf(EXP "val: 0x12345678de00be00, taint: [[], [34], [], [34], [34], [34], [34], [34]]\n");
   test_masking_and64_i2r(tainted64and);
 
   TEST_BANNER("test_masking_and64_i2m");
   tainted64and = 0x12345678deadbeef; __libdft_set_taint(&tainted64and, 34, 8);
-  printf(EXP "addr: %p, val: 0xad00ef, taint: [[+34], [], [+34], [], [], [], [], []]\n", &tainted64and);
+  printf(EXP "addr: %p, val: 0xad00ef, taint: [[34], [], [34], [], [], [], [], []]\n", &tainted64and);
   test_masking_and64_i2m(&tainted64and);
 
   TEST_BANNER("test_masking_and64_r2r");
   uint64_t tainted32and = 0x12345678deadbeef; __libdft_set_taint(&tainted32and, 34, 4);
-  printf(EXP "val: 0x12340000de0000ef, taint: [[+34], [], [], [+34], [], [], [], []]\n");
+  printf(EXP "val: 0x12340000de0000ef, taint: [[34], [], [], [34], [], [], [], []]\n");
   test_masking_and64_r2r(tainted32and);
 
   TEST_BANNER("test_masking_or16_m2r");
   uint16_t tainted16 = 0x1234; __libdft_set_taint(&tainted16, 34, 2);
-  printf(EXP "val: 0xff34, taint: [[+34], [], [], [], [], [], [], []]\n");
+  printf(EXP "val: 0xff34, taint: [[34], [], [], [], [], [], [], []]\n");
   test_masking_or16_m2r(&tainted16);
 
   TEST_BANNER("test_masking_or32_r2m");
   uint64_t tainted32 = 0x0000000012345678; __libdft_set_taint(&tainted32, 34, 4);
-  printf(EXP "addr: %p, val: 0x12ff56ff, taint: [[], [+34], [], [+34], [], [], [], []]\n", &tainted32);
+  printf(EXP "addr: %p, val: 0x12ff56ff, taint: [[], [34], [], [34], [], [], [], []]\n", &tainted32);
   test_masking_or32_r2m(&tainted32);
 }
 

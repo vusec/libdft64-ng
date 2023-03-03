@@ -12,7 +12,7 @@ void tag_sprint_ptroff(std::stringstream &ss, ptroff_t const &v) {
     return;
   }
   if (tag_trait_sprint_decimal) {
-    if (tag_is_file_offset(v)) ss << "+" << std::dec << v;
+    if (tag_is_file_offset(v)) ss << std::dec << v;
     else ss << std::dec << (uint64_t) tag_to_ptr(v);
     return;
   }
@@ -21,11 +21,11 @@ void tag_sprint_ptroff(std::stringstream &ss, ptroff_t const &v) {
   extern void* tag_to_ptr(ptroff_t);
   extern bool tag_is_file_offset(ptroff_t);
   if (tag_is_file_offset(v))
-    ss << "+0x" << std::setw(8) << v;
+    ss << "0x" << std::setw(8) << v;
   else
     ss << "0x" << std::setw(12) << (uint64_t) tag_to_ptr(v);
 #else
-  ss << "+0x" << std::setw(8) << v;
+  ss << "0x" << std::setw(8) << v;
 #endif
 }
 
