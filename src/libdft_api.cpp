@@ -169,6 +169,33 @@ static void sysenter_save(THREADID tid, CONTEXT *ctx, SYSCALL_STANDARD std,
     syscall_desc[syscall_nr].pre(tid, &threads_ctx[tid].syscall_ctx);
 }
 
+// Callable externally because a post-syscall callback may still want to call it
+void sysexit_save_default_handling(THREADID tid) {
+  size_t i; /* iterator */
+  int syscall_nr = threads_ctx[tid].syscall_ctx.nr; /* get the syscall number */
+  /*
+    * the syscall failed; typically 0 and positive
+    * return values indicate success
+    */
+  if (threads_ctx[tid].syscall_ctx.ret < 0)
+    /* no need to do anything */
+    return;
+
+  /* traverse the arguments map */
+  for (i = 0; i < syscall_desc[syscall_nr].nargs; i++)
+    /* analyze each argument */
+    if (unlikely(syscall_desc[syscall_nr].map_args[i] > 0))
+      /* sanity check -- probably non needed */
+      if (likely((void *)threads_ctx[tid].syscall_ctx.arg[i] != NULL))
+        /*
+          * argument i is changed by the system call;
+          * the length of the change is given by
+          * map_args[i]
+          */
+        tagmap_clrn(threads_ctx[tid].syscall_ctx.arg[i],
+                    syscall_desc[syscall_nr].map_args[i]);
+}
+
 /*
  * syscall exit notification (analysis function)
  *
@@ -185,9 +212,6 @@ static void sysenter_save(THREADID tid, CONTEXT *ctx, SYSCALL_STANDARD std,
  */
 static void sysexit_save(THREADID tid, CONTEXT *ctx, SYSCALL_STANDARD std,
                          VOID *v) {
-  /* iterator */
-  size_t i;
-
   /* get the syscall number */
   int syscall_nr = threads_ctx[tid].syscall_ctx.nr;
 
@@ -227,28 +251,7 @@ static void sysexit_save(THREADID tid, CONTEXT *ctx, SYSCALL_STANDARD std,
       syscall_desc[syscall_nr].post(tid, &threads_ctx[tid].syscall_ctx);
     } else {
       /* default post-syscall handling */
-
-      /*
-       * the syscall failed; typically 0 and positive
-       * return values indicate success
-       */
-      if (threads_ctx[tid].syscall_ctx.ret < 0)
-        /* no need to do anything */
-        return;
-
-      /* traverse the arguments map */
-      for (i = 0; i < syscall_desc[syscall_nr].nargs; i++)
-        /* analyze each argument */
-        if (unlikely(syscall_desc[syscall_nr].map_args[i] > 0))
-          /* sanity check -- probably non needed */
-          if (likely((void *)threads_ctx[tid].syscall_ctx.arg[i] != NULL))
-            /*
-             * argument i is changed by the system call;
-             * the length of the change is given by
-             * map_args[i]
-             */
-            tagmap_clrn(threads_ctx[tid].syscall_ctx.arg[i],
-                        syscall_desc[syscall_nr].map_args[i]);
+      sysexit_save_default_handling(tid);
     }
   }
 }

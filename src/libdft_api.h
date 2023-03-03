@@ -96,4 +96,7 @@ int ins_clr_pre(ins_desc_t *);
 int ins_set_post(ins_desc_t *, void (*)(INS));
 int ins_clr_post(ins_desc_t *);
 
+/* Post-syscall default handler */
+void sysexit_save_default_handling(THREADID tid);
+
 #endif /* __LIBDFT_API_H__ */
