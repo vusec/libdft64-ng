@@ -66,6 +66,7 @@ typedef struct {
   ADDRINT ret;                          /* return value */
   CONTEXT *pinctx;                      /* the current CONTEXT */
   /* ADDRINT errno; */                  /* error code */
+  void * custom;                        /* pointer to tool-specific data (e.g., to pass data from the pre-syscall hook to the post-syscall hook)*/
 } syscall_ctx_t;
 
 /* thread context definition */

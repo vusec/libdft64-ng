@@ -161,6 +161,9 @@ static void sysenter_save(THREADID tid, CONTEXT *ctx, SYSCALL_STANDARD std,
   /* dump the architectural state of the processor */
   threads_ctx[tid].syscall_ctx.pinctx = ctx;
 
+  /* clear the tool-specific data */
+  threads_ctx[tid].syscall_ctx.custom = NULL;
+
   /* call the pre-syscall callback (if any); optimized branch */
   if (unlikely(syscall_desc[syscall_nr].pre != NULL))
     syscall_desc[syscall_nr].pre(tid, &threads_ctx[tid].syscall_ctx);
