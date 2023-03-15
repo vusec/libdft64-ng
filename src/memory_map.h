@@ -10,6 +10,7 @@ class memory_map : private std::vector<memory_segment> {
  public:
   memory_map();
   void print();
+  void print_json(std::string application_corepath);
 
   //allowed methods from std::vector
   using vector::operator[];

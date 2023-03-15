@@ -98,6 +98,30 @@ void memory_segment::print() {
           _name.c_str());
 }
 
+// TODO: Should move this to a utils file or use some standard implementation instead
+static std::string str_replace(std::string str, std::string substr1, std::string substr2) {
+  for (size_t index = str.find(substr1, 0); index != std::string::npos && substr1.length(); index = str.find(substr1, index + substr2.length()))
+    str.replace(index, substr1.length(), substr2);
+  return str;
+}
+
+void memory_segment::print_json(std::string application_corepath) {
+  LOG_OUT("Logging memory segment: {"
+          "\"application_corepath\": \"%s\", "
+          "\"seg_address\": %llu, "
+          "\"seg_size\": %lu, "
+          "\"seg_perms\": \"%c%c%c%c\", "
+          "\"seg_file_name\": \"%s\", "
+          "\"seg_file_offset\": %lu"
+          "}\n",
+          str_replace(application_corepath, "\"", "\\\"").c_str(), /* Need to replace " with \" so it's valid JSON */
+          (unsigned long long) _startAddress,
+          length(),
+          (isPrivate()?'P':'S'), (isExecutable()?'X':'-'), (isWriteable()?'W':'-'), (isReadable()?'R':'-'),
+          str_replace(_name, "\"", "\\\"").c_str(), /* Need to replace " with \" so it's valid JSON */
+          _offset);
+}
+
 bool memory_segment::isBindable() {
   return name() != "[vsyscall]";
 }
