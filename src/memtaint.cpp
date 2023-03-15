@@ -149,7 +149,6 @@ static bool taint_stack_mem = true; // By default, taint stack memory
 void memtaint_dont_taint_nonwritable_mem(void) { taint_nonwritable_mem = false; }
 void memtaint_dont_taint_stack_mem(void) { taint_stack_mem = false; }
 
-
 static void memmap_init(void) {
 	memmap = new procmap::memory_map();
 #ifdef DEBUG_MEMTAINT
@@ -351,6 +350,7 @@ void memtaint_taint_all()
 		// We should take the snapshot after memtaint_callback() so that we capture any memory changes it may make
 		LOG_OUT("%s:%d: Taking memory snapshot...\n", __FILE__, __LINE__);
 		memtaint_snapshot();
+		memmap->print_json(snapshot_path_real);
 	}
 
 	/* Throw away all the existing shadow memory pages. */
