@@ -33,10 +33,10 @@ typedef uint64_t ptroff_t;
 #ifndef LIBDFT_TAG_SSET_MAX
 #if defined(LIBDFT_TAG_SSET) && defined(LIBDFT_PTR_32)
 // 8 32-bit tags per set
-#define LIBDFT_TAG_SSET_MAX 8
+#define LIBDFT_TAG_SSET_MAX 16
 #else
 // 4 64-bit tags per set
-#define LIBDFT_TAG_SSET_MAX 4
+#define LIBDFT_TAG_SSET_MAX 8
 #endif
 #endif
 
