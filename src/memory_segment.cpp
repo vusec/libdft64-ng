@@ -85,20 +85,17 @@ bool memory_segment::isPrivate() {
 }
 
 void memory_segment::print() {
-  char info[1024];
-  snprintf(info, sizeof(info),
-           "[%18p-%18p] (%5lu pages) [off=%7lu] [dev=%u:%u] [inode=%8lu] %c%c%c%c '%s'",
-           _startAddress, _endAddress,
-           length() / sysconf(_SC_PAGESIZE),
-           _offset,
-           _deviceMajor, _deviceMinor,
-           _inode,
-           (isPrivate() ?    'P' : 'S'),
-           (isExecutable() ? 'X' : '-'),
-           (isWriteable() ?  'W' : '-'),
-           (isReadable() ?   'R' : '-'),
-           _name.c_str());
-  LOG_OUT("%s\n", info);
+  LOG_OUT("[%18p-%18p] (%5lu pages) [off=%7lu] [dev=%u:%u] [inode=%8lu] %c%c%c%c '%s'\n",
+          _startAddress, _endAddress,
+          length() / sysconf(_SC_PAGESIZE),
+          _offset,
+          _deviceMajor, _deviceMinor,
+          _inode,
+          (isPrivate() ?    'P' : 'S'),
+          (isExecutable() ? 'X' : '-'),
+          (isWriteable() ?  'W' : '-'),
+          (isReadable() ?   'R' : '-'),
+          _name.c_str());
 }
 
 bool memory_segment::isBindable() {
