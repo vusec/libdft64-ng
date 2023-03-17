@@ -8,7 +8,7 @@ binary = sys.argv[1]
 
 bashbin = shutil.which("bash")
 filebin = shutil.which("file")
-num_pies_cmd = bashbin + " -c \"" + filebin + " " + binary + " | grep pie | wc -l\""
+num_pies_cmd = bashbin + " -c \"" + filebin + " " + binary + " | grep 'pie executable\|shared object' | wc -l\""
 num_pies = int(subprocess.check_output(num_pies_cmd, shell=True).decode("utf-8"), 10)
 if num_pies == 0:
     sys.exit("Error: It looks like " + binary + " is not a PIE executable. This is either because it was not built as one, or it was, but has already been relinked.")
