@@ -11,7 +11,7 @@
 #include <sys/syscall.h>
 #include <unistd.h>
 
-#define FUZZING_INPUT_FILE "cur_input"
+const char * fuzzing_input_file = "cur_input";
 
 std::set<int> fuzzing_fd_set;
 static unsigned int stdin_read_off = 0;
@@ -36,7 +36,7 @@ static void post_open_hook(THREADID tid, syscall_ctx_t *ctx) {
   if (unlikely(fd < 0))
     return;
   const char *file_name = (char *)ctx->arg[SYSCALL_ARG0];
-  if (strstr(file_name, FUZZING_INPUT_FILE) != NULL) {
+  if (strstr(file_name, fuzzing_input_file) != NULL) {
     add_fuzzing_fd(fd);
     LOG_DBG("[open] fd: %d : %s \n", fd, file_name);
   }
@@ -47,7 +47,7 @@ static void post_open_hook(THREADID tid, syscall_ctx_t *ctx) {
 static void post_openat_hook(THREADID tid, syscall_ctx_t *ctx) {
   const int fd = ctx->ret;
   const char *file_name = (char *)ctx->arg[SYSCALL_ARG1];
-  if (strstr(file_name, FUZZING_INPUT_FILE) != NULL) {
+  if (strstr(file_name, fuzzing_input_file) != NULL) {
     add_fuzzing_fd(fd);
     LOG_DBG("[openat] fd: %d : %s \n", fd, file_name);
   }
@@ -200,6 +200,10 @@ static void post_munmap_hook(THREADID tid, syscall_ctx_t *ctx) {
 
   // std::cerr <<"[munmap] addr: " << buf << ", nr: "<< nr << std::endl;
   tagmap_clrn(buf, nr);
+}
+
+void hook_file_syscall_set_filename(const char * new_filename) {
+  fuzzing_input_file = new_filename;
 }
 
 void hook_file_syscall() {
