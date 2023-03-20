@@ -268,7 +268,7 @@ inline void PinLogPerProcess::unlock()
 {
 	log_ctx_t *data = &this->data;
 	fflush(data->file);
-	PIN_MutexLock(&this->mutex);
+	PIN_MutexUnlock(&this->mutex);
 }
 
 /*! \brief Release the object's lock.
