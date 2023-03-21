@@ -28,10 +28,4 @@ void memory_map::print() {
   }
 }
 
-void memory_map::print_json(std::string application_corepath) {
-  for (auto &segment : *this) {
-    segment.print_json(application_corepath);
-  }
-}
-
 }  // namespace procmap

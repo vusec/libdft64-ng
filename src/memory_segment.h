@@ -47,7 +47,6 @@ class memory_segment {
   bool isHeap();
   bool isStack();
   void print();
-  void print_json(std::string application_corepath);
 };
 
 }  // namespace procmap
