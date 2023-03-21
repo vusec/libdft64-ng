@@ -184,10 +184,14 @@ void memtaint_enable_snapshot(std::string filename) {
 	snapshot_enabled = true;
 }
 
-void memtaint_snapshot(void) {
+static void memtaint_snapshot(void) {
 	my_system("/usr/bin/gcore -o " + snapshot_path + " " + std::to_string(PIN_GetPid()));
 	// Contrary to its docs, it looks like gcore appends a PID to the filename even if only one PID is given
 	snapshot_path_real = snapshot_path + "." + std::to_string(PIN_GetPid());
+}
+
+static void memtaint_log_syms(void) {
+	my_system("lldb --attach-pid " + std::to_string(PIN_GetPid()) + " --one-line 'target modules dump symtab' --batch --source-quietly --no-lldbinit > " + snapshot_path_real + ".symtab");
 }
 
 // =====================================================================
@@ -351,6 +355,7 @@ void memtaint_taint_all()
 		// We should take the snapshot after memtaint_callback() so that we capture any memory changes it may make
 		LOG_OUT("%s:%d: Taking memory snapshot...\n", __FILE__, __LINE__);
 		memtaint_snapshot();
+		memtaint_log_syms();
 	}
 
 	/* Throw away all the existing shadow memory pages. */
