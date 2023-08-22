@@ -120,6 +120,7 @@ void tagmap_free(void)
 inline void tag_dir_setb(UNUSED tag_dir_t &dir, ADDRINT addr, tag_t const &tag)
 {
   tag_t *tagp = addr_to_shadow((void *)addr);
+  if (tag_is_empty(tag) && tag_is_empty(*tagp)) return; // If both are empty, let's not set the tag, and risk tagmap bloat by writing zero to a zero page
   *tagp = tag;
 }
 
