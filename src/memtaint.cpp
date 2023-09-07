@@ -142,7 +142,7 @@ my_system(std::string s) {
 // Page checking
 // =====================================================================
 
-static procmap::memory_map * memmap;
+static procmap::memory_map * memmap = NULL;
 static bool taint_nonwritable_mem = true; // By default, taint non-writable memory
 static bool taint_stack_mem = true; // By default, taint stack memory
 
@@ -151,6 +151,7 @@ void memtaint_dont_taint_stack_mem(void) { taint_stack_mem = false; }
 
 
 static void memmap_init(void) {
+	if (memmap != NULL) delete memmap;
 	memmap = new procmap::memory_map();
 #ifdef DEBUG_MEMTAINT
 	memmap->print();
@@ -185,14 +186,14 @@ void memtaint_enable_snapshot(std::string filename) {
 }
 
 static void memtaint_snapshot(void) {
-	my_system("/usr/bin/gcore -o " + snapshot_path + " " + std::to_string(PIN_GetPid()));
+	my_system("/usr/bin/gcore -o " + snapshot_path + "-" + std::to_string(tagmap_all_tainted+1) + " " + std::to_string(PIN_GetPid()));
 	// Contrary to its docs, it looks like gcore appends a PID to the filename even if only one PID is given
-	snapshot_path_real = snapshot_path + "." + std::to_string(PIN_GetPid());
+	snapshot_path_real = snapshot_path + "-" + std::to_string(tagmap_all_tainted+1) + "." + std::to_string(PIN_GetPid());
 }
 
-static void memtaint_log_syms(void) {
-	my_system("lldb --attach-pid " + std::to_string(PIN_GetPid()) + " --one-line 'target modules dump symtab' --batch --source-quietly --no-lldbinit > " + snapshot_path_real + ".symtab");
-}
+//static void memtaint_log_syms(void) {
+//	my_system("lldb --attach-pid " + std::to_string(PIN_GetPid()) + " --one-line 'target modules dump symtab' --batch --source-quietly --no-lldbinit > " + snapshot_path_real + ".symtab");
+//}
 
 // =====================================================================
 // Memory tainting
@@ -320,10 +321,8 @@ void memtaint_init(void *addr, size_t len)
 	shadow_addr = addr;
 	shadow_size = len;
 
-	/* Initialize shadow page fault handler if in persistent mode. */
-#ifdef MEMTAINT_PERSISTENT
+	/* Initialize shadow page fault handler */
 	memtaint_spfh_init();
-#endif
 }
 
 // No callback by default
@@ -343,32 +342,23 @@ void memtaint_taint_all()
 		return;
 	}
 
-	if (tagmap_all_tainted)
-		return;
-
-	LOG_OUT("%s:%d: Tainting memory...\n", __FILE__, __LINE__);
+	LOG_OUT("%s:%d: Tainting memory x%d...\n", __FILE__, __LINE__, tagmap_all_tainted+1);
 
 	memmap_init();
 	memtaint_callback();
 
 	if (snapshot_enabled) {
 		// We should take the snapshot after memtaint_callback() so that we capture any memory changes it may make
-		LOG_OUT("%s:%d: Taking memory snapshot...\n", __FILE__, __LINE__);
+		LOG_OUT("%s:%d: Taking memory snapshot x%d...\n", __FILE__, __LINE__, tagmap_all_tainted+1);
 		memtaint_snapshot();
-		memtaint_log_syms();
+		//memtaint_log_syms();
 	}
 
 	/* Throw away all the existing shadow memory pages. */
-	if (do_madvise(shadow_addr, shadow_size, MADV_DONTNEED) == -1)
-		errExit("MADV_DONTNEED");
-
-		/* Initialize shadow page fault handler if not in persistent mode. */
-#ifndef MEMTAINT_PERSISTENT
-	memtaint_spfh_init();
-#endif
+	if (do_madvise(shadow_addr, shadow_size, MADV_DONTNEED) == -1) errExit("MADV_DONTNEED");
 
 	/* Demand-page identity pages from now on. */
-	tagmap_all_tainted = 1;
+	tagmap_all_tainted++;
 
 	LOG_OUT("%s:%d: Done tainting memory.\n", __FILE__, __LINE__);
 }
