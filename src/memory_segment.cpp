@@ -52,6 +52,10 @@ void* memory_segment::endAddress() {
   return _endAddress;
 }
 
+bool memory_segment::contains_addr(void * addr) {
+	return addr >= _startAddress && addr < _endAddress;
+}
+
 std::string memory_segment::name() {
   return _name;
 }

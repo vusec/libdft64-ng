@@ -32,6 +32,7 @@ class memory_segment {
   // getters
   void* startAddress();
   void* endAddress();
+  bool contains_addr(void * addr);
   std::string name();
   size_t length();
   dev_t device();

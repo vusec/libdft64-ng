@@ -159,11 +159,10 @@ static void memmap_init(void) {
 #endif
 }
 
-static bool
-page_is_taintable(void * addr)
+static bool page_is_taintable(void * addr)
 {
 	for (auto &segment : *memmap) {
-		if (addr >= segment.startAddress() && addr < segment.endAddress()) {
+		if (segment.contains_addr(addr)) {
 			if (!taint_nonwritable_mem && !segment.isWriteable()) return false;
 			if (!taint_stack_mem && segment.isStack()) return false;
 			return true;
