@@ -56,14 +56,16 @@ static void memop_deref_before(THREADID tid, ADDRINT taddr, UINT32 base_reg, UIN
   }
 }
 
-static void memop_deref_after(THREADID tid, ADDRINT rip) {
+static void memop_deref_after(THREADID tid, ADDRINT rip, UINT32 ins_writes_with_base_reg) {
   stored_tag_t *stored_tag = &stored_tags[tid % MAX_THREADS];
   if (!stored_tag->taddr) return;
 
-  // restoring taint
-  for (unsigned i = 0; i < sizeof(ADDRINT); i++) {
-    tag_t tag = stored_tag->tag[i];
-    tagmap_setb(stored_tag->taddr + i, tag);
+  // restore taint if the instruction does not read/write with the same base_reg (e.g., as it does in 'and [rdi], 0xffff')
+  if (!ins_writes_with_base_reg) {
+    for (unsigned i = 0; i < sizeof(ADDRINT); i++) {
+      tag_t tag = stored_tag->tag[i];
+      tagmap_setb(stored_tag->taddr + i, tag);
+    }
   }
 
   // no longer using this slot
@@ -86,16 +88,13 @@ void instrument_load_ptr_prop(TRACE trace, VOID *v) {
       for (unsigned i = 0; i < INS_MemoryOperandCount(ins); i++) {
         if (INS_MemoryOperandIsRead(ins, i)) {
           if (read_memopidx != -1) {
-            /* Found a second memory read operand. For example:
-            *    rep cmpsb byte ptr [esi], byte ptr [edi]
+            /* Found a second memory read operand. For example: 'rep cmpsb byte ptr [esi], byte ptr [edi]'
             * This implicitly taints a bit in EFLAGS: skip these instructions */
             continue;
           }
           read_memopidx = i;
-          base_reg = INS_OperandMemoryBaseReg(ins,
-              INS_MemoryOperandIndexToOperandIndex(ins, i));
-          indx_reg = INS_OperandMemoryIndexReg(ins,
-              INS_MemoryOperandIndexToOperandIndex(ins, i));
+          base_reg = INS_OperandMemoryBaseReg(ins, INS_MemoryOperandIndexToOperandIndex(ins, i));
+          indx_reg = INS_OperandMemoryIndexReg(ins, INS_MemoryOperandIndexToOperandIndex(ins, i));
         }
       }
 
@@ -105,6 +104,19 @@ void instrument_load_ptr_prop(TRACE trace, VOID *v) {
       // If only propagating taint from RIP (or an invalid register), skip
       if ((base_reg == REG_RIP || base_reg == REG_INVALID()) &&
           (indx_reg == REG_RIP || indx_reg == REG_INVALID())) continue;
+
+      // Determine whether this instruction reads/write using the same base_reg
+      bool ins_writes_with_base_reg = false;
+      for (unsigned i = 0; i < INS_MemoryOperandCount(ins); i++) {
+        if (INS_MemoryOperandIsWritten(ins, i)) {
+          if (base_reg == INS_OperandMemoryBaseReg(ins, INS_MemoryOperandIndexToOperandIndex(ins, i))) {
+            ins_writes_with_base_reg = true;
+            break;
+          }
+        }
+      }
+
+      //if (ins_writes_with_base_reg) LOG_OUT("%s:%d: ins='%s'; base_reg='%s', indx_reg='%s'\n", __FILE__, __LINE__, INS_Disassemble(ins).c_str(), REG_StringShort(base_reg).c_str(), REG_StringShort(indx_reg).c_str());
 
       /* We are at an instruction that has exactly one memory-read operand
       * of size 8 bytes. We should instrument this instruction so that taint propagates
@@ -124,7 +136,7 @@ void instrument_load_ptr_prop(TRACE trace, VOID *v) {
       * 2. save taint for *taddr
       * 3. propagate taint from base_reg/indx_reg to *taddr
       * 4. let libdft propagate taint from *taddr to destination operand
-      * 5. restore taint for *taddr
+      * 5. if the base_reg is NOT used for both reading/writing (e.g., as it is for 'and [rdi], 0xffff'): restore taint for *taddr
       * 6. execute instruction
       */
 
@@ -145,6 +157,7 @@ void instrument_load_ptr_prop(TRACE trace, VOID *v) {
           IARG_CALL_ORDER, CALL_ORDER_LAST,
           IARG_THREAD_ID,
           IARG_INST_PTR,
+          IARG_UINT32, ins_writes_with_base_reg,
           IARG_END);
     }
   }
