@@ -81,8 +81,8 @@
 #endif
 
 int tagmap_all_tainted;
-static void *shadow_addr;
-static size_t shadow_size;
+static void *shadow_addr, *reserved_addr;
+static size_t shadow_size, reserved_size;
 
 static int
 do_ioctl(int fd, unsigned long request, void *p)
@@ -175,6 +175,27 @@ static bool page_is_taintable(void * addr)
 // Snapshotting
 // =====================================================================
 
+void exclude_non_taintable_pages_from_snapshot() {
+	for (auto &segment : *memmap) {
+		// Don't call madvise for kernel addresses
+		if (segment.endAddress() > (void*)0x7fffffffffff) continue;
+
+		// May exclude this segment from the snapshot if it's: writeable, stack, the tagmap, or the reserved region
+		if ((!taint_nonwritable_mem && !segment.isWriteable()) ||
+				(!taint_stack_mem && segment.isStack()) ||
+				(segment.contains_addr(shadow_addr)) ||
+				(segment.contains_addr(reserved_addr))) {
+			LOG_OUT("%p--%p: MADV_DONTNEED\n", segment.startAddress(), segment.endAddress());
+			if (do_madvise(segment.startAddress(), segment.length(), MADV_DONTDUMP) == -1) errExit("MADV_DONTNEED");
+		}
+		// Otherwise, include this segment in the snapshot
+		else {
+			LOG_OUT("%p--%p: MADV_DODUMP\n", segment.startAddress(), segment.endAddress());
+			if (do_madvise(segment.startAddress(), segment.length(), MADV_DODUMP) == -1) errExit("MADV_DODUMP");
+		}
+	}
+}
+
 static bool snapshot_enabled = false; // By default, don't take a snapshot
 static std::string snapshot_path;
 std::string snapshot_path_real = "";
@@ -186,6 +207,7 @@ void memtaint_enable_snapshot(std::string filename) {
 }
 
 static void memtaint_snapshot(void) {
+	exclude_non_taintable_pages_from_snapshot();
 	my_system("/usr/bin/gcore -o " + snapshot_path + "-" + std::to_string(tagmap_all_tainted+1) + " " + std::to_string(PIN_GetPid()));
 	// Contrary to its docs, it looks like gcore appends a PID to the filename even if only one PID is given
 	snapshot_path_real = snapshot_path + "-" + std::to_string(tagmap_all_tainted+1) + "." + std::to_string(PIN_GetPid());
@@ -315,11 +337,12 @@ void memtaint_spfh_init()
 	PIN_SpawnInternalThread(memtaint_spfh_thread, (void *)uffd, 0, NULL);
 }
 
-void memtaint_init(void *addr, size_t len)
+void memtaint_init(void *saddr, size_t slen, void *raddr, size_t rlen)
 {
-	/* Initialize variables. */
-	shadow_addr = addr;
-	shadow_size = len;
+	shadow_addr = saddr;
+	shadow_size = slen;
+	reserved_addr = raddr;
+	reserved_size = rlen;
 }
 
 // No callback by default

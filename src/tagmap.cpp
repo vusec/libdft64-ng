@@ -58,12 +58,6 @@
 tag_dir_t tag_dir;
 extern thread_ctx_t *threads_ctx;
 
-static int
-do_madvise(void *addr, size_t length, int advice)
-{
-	return syscall(__NR_madvise, addr, length, advice);
-}
-
 // =====================================================================
 // Tagmap setup
 // =====================================================================
@@ -73,7 +67,7 @@ do_madvise(void *addr, size_t length, int advice)
 int tagmap_alloc(void)
 {
 #ifdef LIBDFT_TAG_PTR
-	extern void memtaint_init(void *addr, size_t len);
+  extern void memtaint_init(void *saddr, size_t slen, void *raddr, size_t rlen);
 #endif
   int mmap_prot = PROT_READ | PROT_WRITE;
   int mmap_flags = MAP_FIXED | MAP_ANONYMOUS | MAP_PRIVATE | MAP_NORESERVE;
@@ -89,8 +83,6 @@ int tagmap_alloc(void)
     PIN_ERROR(std::string("Failed to mmap shadow region: ") + err + std::string("\n"));
     return 1;
   }
-  if (do_madvise((void *)(SHADOW_START + RESERVED_BYTES), SHADOW_SIZE - RESERVED_BYTES, MADV_DONTDUMP) == -1)
-		errExit("MADV_DONTDUMP: MADV_DONTDUMP on shadow region");
 
   /* Reserve RESERVED_BYTES at the beginning of the main address space. */
   if (mmap((void *)MAIN_START, RESERVED_BYTES, PROT_NONE, mmap_flags, -1, 0) == (void *)-1)
@@ -99,12 +91,11 @@ int tagmap_alloc(void)
     PIN_ERROR(std::string("Failed to mmap (main) reserved region: ") + err + std::string("\n"));
     return 1;
   }
-  if (do_madvise((void *)MAIN_START, RESERVED_BYTES, MADV_DONTDUMP) == -1)
-		errExit("MADV_DONTDUMP: MADV_DONTDUMP on reserved region");
 
 #ifdef LIBDFT_TAG_PTR
 	/* Initialize memtaint. */
-	memtaint_init((void *)(SHADOW_START + RESERVED_BYTES), SHADOW_SIZE - RESERVED_BYTES);
+	memtaint_init((void *)(SHADOW_START + RESERVED_BYTES), SHADOW_SIZE - RESERVED_BYTES,
+                (void *)MAIN_START, RESERVED_BYTES);
 #endif
 
   return 0;
