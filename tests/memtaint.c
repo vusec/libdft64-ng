@@ -69,11 +69,8 @@ int main(int argc, char** argv)
 	__libdft_taint_mem_all();
 
 	/* Dump. */
-	//printf("a = %d, b = %d, c = %d\n", a, b, c);
 	c += a;
-	//c = a + b;
 	printf("[calculated] c @%p += a @%p\n", &c, &a);
-	//printf("a = %d, b = %d, c = %d\n", a, b, c);
 	__libdft_taint_dump(&a);
 	__libdft_taint_dump(&b);
 	__libdft_taint_dump(&c);
@@ -85,8 +82,8 @@ int main(int argc, char** argv)
 	 * [taint_dump] addr = 0x7fffffffe1f0, tags = {0x7fffffffe1f0}
 	 * [taint_dump] addr = 0x7fffffffe1f4, tags = {0x7fffffffe1f4}
 	 * [taint_dump] addr = 0x7fffffffe1f8, tags = {0x7fffffffe1f8, 0x7fffffffe1f0} <-- different
-	 * [taint_dump] addr = 0x7fffffffe200, tags = {LEN}
-	 * [taint_dump] addr = 0x7fffffffe1fc, tags = {+0x00000001}
+	 * [taint_dump] addr = 0x7fffffffe200, tags = {0x7fffffffe200} <-- different
+	 * [taint_dump] addr = 0x7fffffffe1fc, tags = {0x7fffffffe1fc} <-- different
 	 */
 
 	return 0;
