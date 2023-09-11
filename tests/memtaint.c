@@ -14,6 +14,8 @@ int main(int argc, char** argv)
 	ssize_t count;
 	int a = argc, b = argc%2, c = argc/2, d;
 
+	/* Taint all memory */
+	printf("\n[tainting all memory]\n");
 	__libdft_taint_mem_all();
 
 	/*
@@ -56,6 +58,33 @@ int main(int argc, char** argv)
 	 * [taint_dump] addr = 0x7fffffffe1f8, tags = {0x7fffffffe1f4, 0x7fffffffe1f0}
 	 *
 	 * [stdin-read] 4 bytes into d @0x7fffffffe1fc
+	 * [taint_dump] addr = 0x7fffffffe200, tags = {LEN}
+	 * [taint_dump] addr = 0x7fffffffe1fc, tags = {+0x00000001}
+	 */
+
+	/***************************************************************************/
+	/***************************************************************************/
+	/* Re-taint all memory */
+	printf("\n[retainting all memory]\n");
+	__libdft_taint_mem_all();
+
+	/* Dump. */
+	//printf("a = %d, b = %d, c = %d\n", a, b, c);
+	c += a;
+	//c = a + b;
+	printf("[calculated] c @%p += a @%p\n", &c, &a);
+	//printf("a = %d, b = %d, c = %d\n", a, b, c);
+	__libdft_taint_dump(&a);
+	__libdft_taint_dump(&b);
+	__libdft_taint_dump(&c);
+	__libdft_taint_dump(&count);
+	__libdft_taint_dump(&d);
+
+	/*
+	 * Sample expected output:
+	 * [taint_dump] addr = 0x7fffffffe1f0, tags = {0x7fffffffe1f0}
+	 * [taint_dump] addr = 0x7fffffffe1f4, tags = {0x7fffffffe1f4}
+	 * [taint_dump] addr = 0x7fffffffe1f8, tags = {0x7fffffffe1f8, 0x7fffffffe1f0} <-- different
 	 * [taint_dump] addr = 0x7fffffffe200, tags = {LEN}
 	 * [taint_dump] addr = 0x7fffffffe1fc, tags = {+0x00000001}
 	 */
