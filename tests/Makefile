@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Og -Wall -Werror
+CFLAGS=-O0 -Wall -Werror -g
 LDFLAGS=-z max-page-size=0x1000
 OBJDIR=obj-intel64
 
