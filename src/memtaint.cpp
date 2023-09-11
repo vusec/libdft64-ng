@@ -38,6 +38,7 @@
 #include "tagmap.h"
 #include "debug.h"
 #include "memory_map.h"
+#include "def.h"
 
 #include <inttypes.h>
 #include <sys/types.h>
@@ -320,9 +321,6 @@ void memtaint_init(void *addr, size_t len)
 	/* Initialize variables. */
 	shadow_addr = addr;
 	shadow_size = len;
-
-	/* Initialize shadow page fault handler */
-	memtaint_spfh_init();
 }
 
 // No callback by default
@@ -354,8 +352,15 @@ void memtaint_taint_all()
 		//memtaint_log_syms();
 	}
 
+	/* Initialize shadow page fault handler */
+	if (tagmap_all_tainted == 0) memtaint_spfh_init();
+
 	/* Throw away all the existing shadow memory pages. */
 	if (do_madvise(shadow_addr, shadow_size, MADV_DONTNEED) == -1) errExit("MADV_DONTNEED");
+
+	/* Clear registers' taint */
+	THREADID tid = PIN_ThreadId();
+	for (int regnum = 0; regnum < GRP_NUM; regnum++) tagmap_setn_reg(tid, regnum, TAGS_PER_GPR, tag_traits<tag_t>::cleared_val);
 
 	/* Demand-page identity pages from now on. */
 	tagmap_all_tainted++;
