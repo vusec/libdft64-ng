@@ -76,6 +76,9 @@ void instrument_load_ptr_prop(TRACE trace, VOID *v) {
 
   for (bbl = TRACE_BblHead(trace); BBL_Valid(bbl); bbl = BBL_Next(bbl)) {
     for (ins = BBL_InsHead(bbl); INS_Valid(ins); ins = INS_Next(ins)) {
+      if (INS_IsStackRead(ins) || INS_IsCall(ins) || INS_IsBranch(ins)) continue; // Not propagating taint for 'ret', 'pop', 'call', 'jmp'
+      if (!INS_IsStandardMemop(ins)) continue; // Not propagating taint for non-standard memory reads
+
       REG base_reg = REG_INVALID();
       REG indx_reg = REG_INVALID();
 
@@ -96,15 +99,18 @@ void instrument_load_ptr_prop(TRACE trace, VOID *v) {
         }
       }
 
-      if (read_memopidx == -1)
-        continue; // no memory read operand was found, nothing to do
+      // No memory read operand was found, nothing to do
+      if (read_memopidx == -1) continue;
+
+      // If only propagating taint from RIP (or an invalid register), skip
+      if ((base_reg == REG_RIP || base_reg == REG_INVALID()) &&
+          (indx_reg == REG_RIP || indx_reg == REG_INVALID())) continue;
 
       /* We are at an instruction that has exactly one memory-read operand
       * of size 8 bytes. We should instrument this instruction so that taint propagates
       * from the base and index register to the target operand (may it be a register or
       * may it be a memory value) */
 
-      // FIXME: This keep some stack ops e.g., 'ret'
       // FIXME: Why does the mem operand have to be 8 bytes...? What about e.g., a 'mov edx, dword ptr [rbx]'.
 
       //std::string ins_filename; INT32 ins_line, ins_col; PIN_GetSourceLocation(INS_Address(ins), &ins_col, &ins_line, &ins_filename);
@@ -115,10 +121,10 @@ void instrument_load_ptr_prop(TRACE trace, VOID *v) {
 
       /* Instrument this instruction so that:
       * 1. compute target address for memory operand, say taddr
-      * 2. store taint for taddr
-      * 3. propagate taint from base_reg/indx_reg to taddr
-      * 4. let libdft propagate taint from taddr to destination operand
-      * 5. restore taint for taddr
+      * 2. save taint for *taddr
+      * 3. propagate taint from base_reg/indx_reg to *taddr
+      * 4. let libdft propagate taint from *taddr to destination operand
+      * 5. restore taint for *taddr
       * 6. execute instruction
       */
 
@@ -134,7 +140,6 @@ void instrument_load_ptr_prop(TRACE trace, VOID *v) {
           IARG_END);
 
       // We need to go after libdft (forunately all the libdft callbacks are inserted before the instruction)
-      // Also, we need to go before the instruction, in case it does not fall through (e.g., call [rax])
       INS_InsertCall(ins, IPOINT_BEFORE,
           AFUNPTR(memop_deref_after),
           IARG_CALL_ORDER, CALL_ORDER_LAST,
