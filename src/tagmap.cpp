@@ -51,7 +51,7 @@
 #define errExit(msg)        \
 	do                      \
 	{                       \
-		perror(msg);        \
+		LOG_ERR(msg);        \
 		exit(EXIT_FAILURE); \
 	} while (0)
 
