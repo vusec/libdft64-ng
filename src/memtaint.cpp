@@ -347,17 +347,15 @@ void memtaint_init(void *saddr, size_t slen, void *raddr, size_t rlen)
 
 // No callback by default
 static bool memtaint_only_do_callback = false;
-static bool memtaint_callback_done = false;
 static void nop() { }
 static void(*__memtaint_callback)() = nop;
-static void memtaint_callback(void) { __memtaint_callback(); memtaint_callback_done = true; }
+static void memtaint_callback(void) { __memtaint_callback(); }
 void memtaint_set_callback(void(*new_callback)()) { __memtaint_callback = new_callback; }
 void memtaint_set_only_do_callback(bool b) { memtaint_only_do_callback = b; }
 
 void memtaint_taint_all()
 {
 	if (memtaint_only_do_callback) {
-		if (memtaint_callback_done) return;
 		memtaint_callback();
 		return;
 	}
