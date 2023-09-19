@@ -185,12 +185,12 @@ void exclude_non_taintable_pages_from_snapshot() {
 				(!taint_stack_mem && segment.isStack()) ||
 				(segment.contains_addr(shadow_addr)) ||
 				(segment.contains_addr(reserved_addr))) {
-			LOG_OUT("%p--%p: MADV_DONTNEED\n", segment.startAddress(), segment.endAddress());
+			LOG_DBG("%p--%p: MADV_DONTNEED\n", segment.startAddress(), segment.endAddress());
 			if (do_madvise(segment.startAddress(), segment.length(), MADV_DONTDUMP) == -1) errExit("MADV_DONTNEED");
 		}
 		// Otherwise, include this segment in the snapshot
 		else {
-			LOG_OUT("%p--%p: MADV_DODUMP\n", segment.startAddress(), segment.endAddress());
+			LOG_DBG("%p--%p: MADV_DODUMP\n", segment.startAddress(), segment.endAddress());
 			if (do_madvise(segment.startAddress(), segment.length(), MADV_DODUMP) == -1) errExit("MADV_DODUMP");
 		}
 	}
