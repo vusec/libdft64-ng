@@ -186,12 +186,12 @@ void exclude_non_taintable_pages_from_snapshot() {
 				(segment.contains_addr(shadow_addr)) ||
 				(segment.contains_addr(reserved_addr))) {
 			LOG_DBG("%p--%p: MADV_DONTNEED\n", segment.startAddress(), segment.endAddress());
-			if (do_madvise(segment.startAddress(), segment.length(), MADV_DONTDUMP) == -1) errExit("MADV_DONTNEED");
+			if (do_madvise(segment.startAddress(), segment.length(), MADV_DONTDUMP) == -1) LOG_OUT("%s:%d: WARNING: madvise(%p, %lu, MADV_DONTDUMP) returned an error: '%s'\n", __FILE__, __LINE__, segment.startAddress(), segment.length(), strerror(errno));
 		}
 		// Otherwise, include this segment in the snapshot
 		else {
 			LOG_DBG("%p--%p: MADV_DODUMP\n", segment.startAddress(), segment.endAddress());
-			if (do_madvise(segment.startAddress(), segment.length(), MADV_DODUMP) == -1) errExit("MADV_DODUMP");
+			if (do_madvise(segment.startAddress(), segment.length(), MADV_DODUMP) == -1) LOG_OUT("%s:%d: WARNING: madvise(%p, %lu, MADV_DODUMP) returned an error: '%s'\n", __FILE__, __LINE__, segment.startAddress(), segment.length(), strerror(errno));
 		}
 	}
 }
