@@ -80,9 +80,12 @@
 #define LOG_MEMTAINT(...)
 #endif
 
-int tagmap_all_tainted;
+static int tagmap_all_tainted;
 static void *shadow_addr, *reserved_addr;
 static size_t shadow_size, reserved_size;
+static bool addr_is_kernel(void * addr) { return addr > (void*)0x7fffffffffff; }
+static bool addr_is_shadow(void * addr) { return (addr >= shadow_addr) && (addr < (uint8_t*)shadow_addr + shadow_size); }
+static bool addr_is_reserved(void * addr) { return (addr >= reserved_addr) && (addr < (uint8_t*)reserved_addr + reserved_size); }
 
 static int
 do_ioctl(int fd, unsigned long request, void *p)
@@ -161,6 +164,7 @@ static void memmap_init(void) {
 
 static bool page_is_taintable(void * addr)
 {
+	if (addr_is_kernel(addr) || addr_is_shadow(addr) || addr_is_reserved(addr)) return false;
 	for (auto &segment : *memmap) {
 		if (segment.contains_addr(addr)) {
 			if (!taint_nonwritable_mem && !segment.isWriteable()) return false;
@@ -178,7 +182,7 @@ static bool page_is_taintable(void * addr)
 void exclude_non_taintable_pages_from_snapshot() {
 	for (auto &segment : *memmap) {
 		// Don't call madvise for kernel addresses
-		if (segment.endAddress() > (void*)0x7fffffffffff) continue;
+		if (addr_is_kernel(segment.endAddress())) continue;
 
 		// May exclude this segment from the snapshot if it's: writeable, stack, the tagmap, or the reserved region
 		if ((!taint_nonwritable_mem && !segment.isWriteable()) ||
