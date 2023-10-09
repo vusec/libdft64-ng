@@ -281,26 +281,19 @@ memtaint_spfh_thread(void *arg)
 		/* Copy the page pointed to by 'page' into the faulting region. */
 		uffdio_copy.src = (unsigned long)page;
 		char *paddr = (char *)(msg.arg.pagefault.address & ~(page_size - 1));
-		if (tagmap_all_tainted)
-		{
-			if (!page_is_taintable(shadow_to_addr((tag_t *)(paddr)))) {
-				/* Create zero page. */
-				LOG_MEMTAINT("    Filling zero page: shadow_addr=%p, main_addr=%p, first_tag=(empty)\n",
-					paddr, shadow_to_addr((tag_t *)paddr));
-				for (unsigned i = 0; i < page_size; i += TAG_SIZE) *((tag_t *)&page[i]) = tag_traits<tag_t>::cleared_val;
+		if (tagmap_all_tainted && page_is_taintable(shadow_to_addr((tag_t *)(paddr)))) {
+			/* Create identity page rather than the zero page. */
+			LOG_MEMTAINT("    Filling identify page: shadow_addr=%p, main_addr=%p, first_tag=%p\n", paddr, shadow_to_addr((tag_t *)paddr), (void*)(uint64_t) ptr_to_tag(shadow_to_addr((tag_t *)paddr)));
+			for (unsigned i = 0; i < page_size; i += TAG_SIZE) {
+				tag_t *t = (tag_t *)&page[i];
+				void *addr = shadow_to_addr((tag_t *)(paddr + i));
+				*t = tag_alloc<tag_t>(ptr_to_tag(addr));
 			}
-
-			else {
-				/* Create identity page rather than the zero page. */
-				LOG_MEMTAINT("    Filling identify page: shadow_addr=%p, main_addr=%p, first_tag=%p\n",
-					paddr, shadow_to_addr((tag_t *)paddr), (void*)(uint64_t) ptr_to_tag(shadow_to_addr((tag_t *)paddr)));
-				for (unsigned i = 0; i < page_size; i += TAG_SIZE)
-				{
-					tag_t *t = (tag_t *)&page[i];
-					void *addr = shadow_to_addr((tag_t *)(paddr + i));
-					*t = tag_alloc<tag_t>(ptr_to_tag(addr));
-				}
-			}
+		} else {
+			/* Create zero page. */
+			LOG_MEMTAINT("    Filling zero page: shadow_addr=%p, main_addr=%p, first_tag=(empty)\n", paddr, shadow_to_addr((tag_t *)paddr));
+			//for (unsigned i = 0; i < page_size; i += TAG_SIZE) *((tag_t *)&page[i]) = tag_traits<tag_t>::cleared_val;
+			memset(page, 0, page_size);
 		}
 
 		/* We need to handle page faults in units of pages(!).
