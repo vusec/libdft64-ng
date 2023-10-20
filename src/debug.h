@@ -13,7 +13,6 @@ extern PinLog *_libdft_dbg;
 extern bool _log_to_std;
 #define LIBDFT_DEBUG_STR_LEN 100
 extern char _libdft_debug_str[LIBDFT_DEBUG_STR_LEN];
-extern std::string snapshot_path_real;
 
 #define LOG_OUT(...)             \
   do {                               \

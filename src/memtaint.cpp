@@ -80,7 +80,7 @@
 #define LOG_MEMTAINT(...)
 #endif
 
-static int tagmap_all_tainted;
+static int tagmap_all_tainted = 0;
 static void *shadow_addr, *reserved_addr;
 static size_t shadow_size, reserved_size;
 static bool addr_is_kernel(void * addr) { return addr > (void*)0x7fffffffffff; }
@@ -202,7 +202,7 @@ void exclude_non_taintable_pages_from_snapshot() {
 
 static bool snapshot_enabled = false; // By default, don't take a snapshot
 static std::string snapshot_path;
-std::string snapshot_path_real = "";
+static std::string snapshot_path_real = "";
 
 void memtaint_enable_snapshot(std::string filename) {
 	assert(!filename.empty()); // TODO: We should also assert that filename's directory exists
@@ -220,6 +220,9 @@ static void memtaint_snapshot(void) {
 //static void memtaint_log_syms(void) {
 //	my_system("lldb --attach-pid " + std::to_string(PIN_GetPid()) + " --one-line 'target modules dump symtab' --batch --source-quietly --no-lldbinit > " + snapshot_path_real + ".symtab");
 //}
+
+std::string memtaint_get_snapshot_path(void) { return snapshot_path_real; }
+int memtaint_get_snapshot_num(void) { return tagmap_all_tainted; }
 
 // =====================================================================
 // Memory tainting

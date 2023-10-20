@@ -10,4 +10,7 @@ void memtaint_dont_taint_nonwritable_mem(void);
 void memtaint_dont_taint_stack_mem(void);
 void memtaint_enable_snapshot(std::string filename);
 
+std::string memtaint_get_snapshot_path(void);
+int memtaint_get_snapshot_num(void);
+
 #endif /* __MEMTAINT_H__ */
