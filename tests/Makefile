@@ -1,7 +1,7 @@
-CC=gcc
-CFLAGS=-O0 -Wall -Werror -g
-LDFLAGS=-z max-page-size=0x1000
-OBJDIR=obj-intel64
+CC ?= gcc
+CFLAGS = -O0 -Wall -Werror -g
+LDFLAGS = -z max-page-size=0x1000
+OBJDIR = obj-intel64
 
 PROGRAMS=memtaint
 PROGRAMS+=ins
