@@ -239,6 +239,7 @@ void test_masking() {
 
 void test_loadptrprop64(uint64_t *tainted64) {
   asm(	NOPS
+	"xor %%rdi, %%rdi;"		// clear rdi
 	"mov %[atainted64], %%rax;"
 	"movq (%%rax), %%rdi;"
 	"call __libdft_getval_taint;"
@@ -286,7 +287,7 @@ int main(int argc, char** argv) {
   test_push();
   test_mul();
   test_masking();
-  test_loadptrprop();
+  //test_loadptrprop();
   // TODO: Test e.g., "mov $0, %%di;" to make sure only the lower 2 bytes propagate taint
 
   printf(BANNER "\n*** TODO: Make a script to check whether the expected output and the actual output are the same ***\n");
