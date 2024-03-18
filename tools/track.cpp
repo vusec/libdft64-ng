@@ -6,19 +6,21 @@
 #include "tag_traits.h"
 #include <iostream>
 
+#define MYLOG(...) do { printf(__VA_ARGS__); fflush(stdout); } while(0)
+
 static bool val_print_decimal = true;
 
 VOID TestGetHandler(void *p) {
   uint64_t val = *((uint64_t *)p);
   tagqarr_t tarr = tagmap_getqarr((ADDRINT)p);
-  if (val_print_decimal) printf("[PIN][GET]    addr: %p, val: %lu, taint: %s\n", p, val, tagqarr_sprint(tarr).c_str());
-  else                   printf("[PIN][GET]    addr: %p, val: 0x%lx, taint: %s\n", p, val, tagqarr_sprint(tarr).c_str());
+  if (val_print_decimal) MYLOG("[PIN][GET]    addr: %p, val: %lu, taint: %s\n", p, val, tagqarr_sprint(tarr).c_str());
+  else                   MYLOG("[PIN][GET]    addr: %p, val: 0x%lx, taint: %s\n", p, val, tagqarr_sprint(tarr).c_str());
 }
 
 VOID TestGetValHandler(THREADID tid, uint64_t v) {
   tagqarr_t tarr = tagmap_getqarr_reg(tid, X64_ARG0_REG, 8);
-  if (val_print_decimal) printf("[PIN][GETVAL] val: %lu, taint: %s\n", v, tagqarr_sprint(tarr).c_str());
-  else                   printf("[PIN][GETVAL] val: 0x%lx, taint: %s\n", v, tagqarr_sprint(tarr).c_str());
+  if (val_print_decimal) MYLOG("[PIN][GETVAL] val: %lu, taint: %s\n", v, tagqarr_sprint(tarr).c_str());
+  else                   MYLOG("[PIN][GETVAL] val: 0x%lx, taint: %s\n", v, tagqarr_sprint(tarr).c_str());
 }
 
 VOID TestSetHandler(void *p, unsigned int v, size_t n) {
@@ -26,7 +28,7 @@ VOID TestSetHandler(void *p, unsigned int v, size_t n) {
   for (size_t i = 0; i < n; i++) {
     tagmap_setb((ADDRINT)p + i, t);
   }
-  //printf("[PIN][SET] addr: %p, taint: %s\n", p, tagn_sprint((ADDRINT)p,n).c_str());
+  //MYLOG("[PIN][SET] addr: %p, taint: %s\n", p, tagn_sprint((ADDRINT)p,n).c_str());
 }
 
 VOID TestSetTagPrintDecimal(bool b) {

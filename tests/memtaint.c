@@ -4,6 +4,8 @@
 #include <unistd.h>
 #include "../src/libdft_cmd.h"
 
+#define LOG(...) do { printf(__VA_ARGS__); fflush(stdout); } while(0)
+
 /*
  * Build entire project with (required for [calculated] test only):
  * - CPPFLAGS=-DLIBDFT_TAG_PTR make clean all #or -DLIBDFT_TAG_PTR_32
@@ -15,7 +17,7 @@ int main(int argc, char** argv)
 	int a = argc, b = argc%2, c = argc/2, d;
 
 	/* Taint all memory */
-	printf("\n[tainting all memory]\n");
+	LOG("\n[tainting all memory]\n");
 	__libdft_taint_mem_all();
 
 	/*
@@ -41,12 +43,12 @@ int main(int argc, char** argv)
 	}
 
 	/* Dump. */
-	printf("[calculated] c @%p = a @%p + b @%p\n", &c, &a, &b);
+	LOG("[calculated] c @%p = a @%p + b @%p\n", &c, &a, &b);
 	__libdft_taint_dump(&a);
 	__libdft_taint_dump(&b);
 	__libdft_taint_dump(&c);
 
-	printf("\n[stdin-read] %ld bytes into d @%p\n", count, &d);
+	LOG("\n[stdin-read] %ld bytes into d @%p\n", count, &d);
 	__libdft_taint_dump(&count);
 	__libdft_taint_dump(&d);
 
@@ -65,12 +67,12 @@ int main(int argc, char** argv)
 	/***************************************************************************/
 	/***************************************************************************/
 	/* Re-taint all memory */
-	printf("\n[retainting all memory]\n");
+	LOG("\n[retainting all memory]\n");
 	__libdft_taint_mem_all();
 
 	/* Dump. */
 	c += a;
-	printf("[calculated] c @%p += a @%p\n", &c, &a);
+	LOG("[calculated] c @%p += a @%p\n", &c, &a);
 	__libdft_taint_dump(&a);
 	__libdft_taint_dump(&b);
 	__libdft_taint_dump(&c);
