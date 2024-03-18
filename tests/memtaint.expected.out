@@ -1,0 +1,24 @@
+- Running test memtaint...
+setarch x86_64 -R /home/brian/Research/einstein/src/misc/pin-3.28-98749-g6643ecee5-gcc-linux/pin -t ../tools/obj-intel64/track.so -- obj-intel64/memtaint
+
+[tainting all memory]
+memtaint.cpp:363: Tainting memory x1...
+memtaint.cpp:388: Done tainting memory.
+[calculated] c @0x7fffffffd304 = a @0x7fffffffd2fc + b @0x7fffffffd300
+[taint_dump] addr = 0x7fffffffd2fc, tags = [0x7fffffffd2fc]
+[taint_dump] addr = 0x7fffffffd300, tags = [0x7fffffffd300]
+[taint_dump] addr = 0x7fffffffd304, tags = [0x7fffffffd300, 0x7fffffffd2fc]
+
+[stdin-read] 4 bytes into d @0x7fffffffd308
+[taint_dump] addr = 0x7fffffffd310, tags = [LEN]
+[taint_dump] addr = 0x7fffffffd308, tags = [0x00000001]
+
+[retainting all memory]
+memtaint.cpp:363: Tainting memory x2...
+memtaint.cpp:388: Done tainting memory.
+[calculated] c @0x7fffffffd304 += a @0x7fffffffd2fc
+[taint_dump] addr = 0x7fffffffd2fc, tags = [0x7fffffffd2fc]
+[taint_dump] addr = 0x7fffffffd300, tags = [0x7fffffffd300]
+[taint_dump] addr = 0x7fffffffd304, tags = [0x7fffffffd2fc, 0x7fffffffd304]
+[taint_dump] addr = 0x7fffffffd310, tags = [0x7fffffffd310]
+[taint_dump] addr = 0x7fffffffd308, tags = [0x7fffffffd308]

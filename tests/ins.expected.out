@@ -1,0 +1,43 @@
+- Running test ins...
+setarch x86_64 -R /home/brian/Research/einstein/src/misc/pin-3.28-98749-g6643ecee5-gcc-linux/pin -t ../tools/obj-intel64/track.so -- obj-intel64/ins
+================================ Running test_mov_32bit_extend_const...
+[EXPECTED]    val: 0, taint: [[], [], [], [], [], [], [], []]
+[PIN][GETVAL] val: 0, taint: [[], [], [], [], [], [], [], []]
+================================ Running test_movsx_8u_to_16...
+[EXPECTED]    val: 1, taint: [[34], [], [], [], [], [], [], []]
+[PIN][GETVAL] val: 1, taint: [[34], [], [], [], [], [], [], []]
+================================ Running test_mov_32bit_extend_reg...
+[EXPECTED]    val: 1234, taint: [[], [], [], [], [], [], [], []]
+[PIN][GETVAL] val: 1234, taint: [[], [], [], [], [], [], [], []]
+================================ Running test_push...
+[EXPECTED]    val: 1, taint: [[34], [34], [34], [34], [34], [34], [34], [34]]
+[EXPECTED]    val: 22, taint: [[], [], [], [], [], [], [], []]
+[EXPECTED]    val: 1, taint: [[34], [34], [], [], [], [], [], []]
+[PIN][GETVAL] val: 1, taint: [[34], [34], [34], [34], [34], [34], [34], [34]]
+[PIN][GETVAL] val: 22, taint: [[], [], [], [], [], [], [], []]
+[PIN][GETVAL] val: 1, taint: [[34], [34], [], [], [], [], [], []]
+================================ Running test_mul_r2r...
+[EXPECTED]    val: 1234, taint: [[34], [34], [34], [34], [34], [34], [34], [34]]
+[EXPECTED]    val: 0, taint: [[34], [34], [34], [34], [34], [34], [34], [34]]
+[PIN][GETVAL] val: 1234, taint: [[34], [34], [34], [34], [34], [34], [34], [34]]
+[PIN][GETVAL] val: 0, taint: [[34], [34], [34], [34], [34], [34], [34], [34]]
+================================ Running test_mul_m2r...
+[EXPECTED]    val: 1234, taint: [[34], [34], [34], [34], [34], [34], [34], [34]]
+[EXPECTED]    val: 0, taint: [[34], [34], [34], [34], [34], [34], [34], [34]]
+[PIN][GETVAL] val: 1234, taint: [[34], [34], [34], [34], [34], [34], [34], [34]]
+[PIN][GETVAL] val: 0, taint: [[34], [34], [34], [34], [34], [34], [34], [34]]
+================================ Running test_masking_and64_i2r...
+[EXPECTED]    val: 0x12345678de00be00, taint: [[], [34], [], [34], [34], [34], [34], [34]]
+[PIN][GETVAL] val: 0x12345678de00be00, taint: [[], [34], [], [34], [34], [34], [34], [34]]
+================================ Running test_masking_and64_i2m...
+[EXPECTED]    addr: 0x7fffffffd2c0, val: 0xad00ef, taint: [[34], [], [34], [], [], [], [], []]
+[PIN][GET]    addr: 0x7fffffffd2c0, val: 0xad00ef, taint: [[34], [], [34], [], [], [], [], []]
+================================ Running test_masking_and64_r2r...
+[EXPECTED]    val: 0x12340000de0000ef, taint: [[34], [], [], [34], [], [], [], []]
+[PIN][GETVAL] val: 0x12340000de0000ef, taint: [[34], [], [], [34], [], [], [], []]
+================================ Running test_masking_or16_m2r...
+[EXPECTED]    val: 0xff34, taint: [[34], [], [], [], [], [], [], []]
+[PIN][GETVAL] val: 0xff34, taint: [[34], [], [], [], [], [], [], []]
+================================ Running test_masking_or32_r2m...
+[EXPECTED]    addr: 0x7fffffffd2d0, val: 0x12ff56ff, taint: [[], [34], [], [34], [], [], [], []]
+[PIN][GET]    addr: 0x7fffffffd2d0, val: 0x12ff56ff, taint: [[], [34], [], [34], [], [], [], []]
