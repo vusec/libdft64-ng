@@ -345,6 +345,7 @@ static inline int thread_ctx_init(void) {
 static void
 libdft_cmd_handler(ADDRINT cmd, ADDRINT arg1, const CONTEXT *ctxt)
 {
+  LOG_DBG("%s:%d: Received cmd=%lu.\n", __FILE__, __LINE__, cmd);
 	switch (cmd)
 	{
 	case CMD_TAINT_DUMP:

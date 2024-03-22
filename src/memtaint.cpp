@@ -131,7 +131,7 @@ my_system(std::string s) {
 	}
 	else if (pid < 0) {
 		// Fork failed
-		LOG_ERR("Fork failed!\n");
+		LOG_DBG("%s:%d: fork failed!\n", __FILE__, __LINE__);
 		exit(-1);
 	} else {
 		// Parent
